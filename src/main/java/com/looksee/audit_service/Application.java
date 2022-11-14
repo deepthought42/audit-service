@@ -10,9 +10,11 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.looksee*"})
+/*
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
+*/
 @EnableNeo4jRepositories("com.looksee.audit_service.models.repository")
 @EntityScan(basePackages = { "com.looksee.audit_service.models"} )
 public class Application {

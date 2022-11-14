@@ -18,7 +18,10 @@ package com.looksee.audit_service;
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
 import java.util.Base64;
+import java.util.HashSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,31 +30,62 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.looksee.audit_service.mapper.Body;
+import com.looksee.audit_service.model.dto.PageBuiltMessage;
+import com.looksee.audit_service.models.enums.ExecutionStatus;
+import com.looksee.audit_service.services.AuditRecordService;
 
 // PubsubController consumes a Pub/Sub message.
 @RestController
 public class AuditController {
-	
+	private static Logger log = LoggerFactory.getLogger(AuditController.class);
+
 	@Autowired
 	private AuditRecordService audit_record_service;
 	
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  public ResponseEntity receiveMessage(@RequestBody Body body) {
-    // Get PubSub message from request body.
+  public ResponseEntity receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException {
+	  log.warn("body :: "+body);
+	  // Get PubSub message from request body.
     Body.Message message = body.getMessage();
+    log.warn("message " + message);
+    /*
     if (message == null) {
       String msg = "Bad Request: invalid Pub/Sub message format";
       System.out.println(msg);
       return new ResponseEntity(msg, HttpStatus.BAD_REQUEST);
     }
-
-    AuditRecord data = message.getData();
-    
+*/
+    String data = message.getData();
+    log.warn("data :: "+data);
   //retrieve audit record and determine type of audit record
-    AuditRecord audit_record = audit_record_service.findById(data.getId()).get();
+    
+    byte[] decodedBytes = Base64.getUrlDecoder().decode(data);
+    String decoded_json = new String(decodedBytes);
+
+    log.warn("decoded json = "+decoded_json);
+    
+    //create ObjectMapper instance
+	ObjectMapper objectMapper = new ObjectMapper();
+	
+	//convert json string to object
+	PageBuiltMessage audit_record_msg = objectMapper.readValue(decoded_json, PageBuiltMessage.class);
+	log.warn("audit record = " + audit_record_msg);
+
+	AuditRecord audit_record = new PageAuditRecord(ExecutionStatus.BUILDING_PAGE, true);
+	
+	audit_record = audit_record_service.save(audit_record, audit_record_msg.getAccountUserId(), audit_record_msg.getDomainId());
+	audit_record_service.addPageAuditToDomainAudit(audit_record_msg.getDomainAuditId(), audit_record.getId());
+	
+	audit_record_service.addPageToAuditRecord(audit_record.getId(), audit_record_msg.getPageId());
+	
+	// AuditRecord audit_record = audit_record_service.findById(audit_record.getId()).get();
     if(audit_record == null) {
     	//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
+    	
     }
     else {
     	//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
@@ -63,6 +97,7 @@ public class AuditController {
 		audit_manager.tell(message, ActorRef.noSender());
 		*/
     }
+  
     
     return new ResponseEntity("Successfully sent message to audit manager", HttpStatus.OK);
     

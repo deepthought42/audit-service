@@ -1,8 +1,7 @@
-package com.looksee.audit_service;
+package com.looksee.audit_service.services;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.looksee.audit_service.AuditRecord;
 import com.looksee.audit_service.models.repository.AuditRecordRepository;
 
 
@@ -27,6 +27,10 @@ public class AuditRecordService {
 
 	@Autowired
 	private AuditRecordRepository audit_record_repo;
+	
+	@Autowired
+	private DomainService domain_service;
+	
 	
 	/*
 	@Autowired
@@ -48,8 +52,9 @@ public class AuditRecordService {
 
 		return audit_record_repo.save(audit);
 	}
+	*/
 	
-	public AuditRecord save(AuditRecord audit, Long account_id, Long domain_id) {
+	public AuditRecord save(AuditRecord audit, String account_id, long domain_id) {
 		assert audit != null;
 
 		AuditRecord audit_record = audit_record_repo.save(audit);
@@ -61,12 +66,9 @@ public class AuditRecordService {
 				&& domain_id >= 0) 
 		{
 			try {
-				Account account = account_service.findById(account_id).get();
-				int id_start_idx = account.getUserId().indexOf('|');
-				String user_id = account.getUserId().substring(id_start_idx+1);
 				Domain domain = domain_service.findById(domain_id).get();
 				DomainDto domain_dto = domain_dto_service.build(domain);
-				MessageBroadcaster.sendAuditRecord(user_id, domain_dto);
+				MessageBroadcaster.sendAuditRecord(account_id, domain_dto);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -74,7 +76,7 @@ public class AuditRecordService {
 		//broadcast audit record to users
 		return audit_record;
 	}
-	*/
+	
 	public Optional<AuditRecord> findById(long id) {
 		return audit_record_repo.findById(id);
 	}
