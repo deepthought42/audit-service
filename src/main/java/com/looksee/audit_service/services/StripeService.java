@@ -1,25 +1,9 @@
 package com.looksee.audit_service.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
-import com.stripe.Stripe;
-import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Plan;
-import com.stripe.model.Price;
-import com.stripe.model.Product;
-import com.stripe.model.Subscription;
-import com.stripe.model.checkout.Session;
-import com.stripe.param.SubscriptionUpdateParams;
-import com.stripe.param.checkout.SessionCreateParams;
 
 @Service
 @PropertySource("classpath:application.properties")
@@ -29,7 +13,7 @@ public class StripeService {
 	
 	@Value("${stripe.checkout_cancel_url}")
     private String checkout_cancel_url;
-	
+	/*
     @Autowired
     StripeService(@Value("${stripe.secretKey}") String secretKey) {
     	//TEST
@@ -65,26 +49,6 @@ public class StripeService {
 		params.put("items", items);
 
 		return Subscription.create(params);
-		
-		/*
-    	Map<String, Object> item = new HashMap<String, Object>();
-    	item.put("plan", plan.getId());
-
-    	Map<String, Object> items = new HashMap<String, Object>();
-    	items.put("0", item);
-    	
-    	Map<String, Object> params = new HashMap<String, Object>();
-    	params.put("customer", customer.getId());
-    	params.put("items", items);
-    	
-		Calendar c = Calendar.getInstance();
-		c.add(Calendar.MONTH, 1);
-		Date date = c.getTime();
-		date.getTime();
-		params.put("trial_end", date.getTime()/1000);
-
-		return Subscription.create(params);
-		*/
     }
 
     public Subscription subscribe(Plan discovery, Plan tests, Customer customer) 
@@ -102,14 +66,6 @@ public class StripeService {
     	Map<String, Object> params = new HashMap<String, Object>();
     	params.put("customer", customer.getId());
     	params.put("items", items);
-    	
-    	/*
-		Calendar c = Calendar.getInstance();
-		c.add(Calendar.MONTH, 3);
-		Date date = c.getTime();
-		date.getTime();
-		params.put("trial_end", date.getTime()/1000);
-		*/
 
 		return Subscription.create(params);
     }
@@ -142,7 +98,7 @@ public class StripeService {
 		Customer customer = Customer.retrieve(customer_token);
 		return customer.delete();
 	}
-
+*/
 	/**
 	 * Creates a session for Stripe Checkout and returns the session id
 	 * @param price_id
@@ -151,6 +107,7 @@ public class StripeService {
 	 * @return
 	 * @throws StripeException
 	 */
+	/*
 	public Session createCheckoutSession(String price_id, 
 										 String customer_id, 
 										 String customer_email
@@ -197,4 +154,5 @@ public class StripeService {
 	public Product getProduct(String product_id) throws StripeException {
 		return Product.retrieve(product_id);
 	}
+	*/
 }

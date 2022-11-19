@@ -1,7 +1,7 @@
 package com.looksee.audit_service.model.dto;
 
 public class PageBuiltMessage {
-	private String account_user_id;
+	private String account_id;
 	private long page_id;
 	private long domain_id;
 	private long domain_audit_id;
@@ -26,12 +26,12 @@ public class PageBuiltMessage {
 		this.domain_audit_id = domain_audit_id;
 	}
 
-	public String getAccountUserId() {
-		return account_user_id;
+	public String getAccountId() {
+		return account_id;
 	}
 
-	public void setAccountUserId(String account_user_id) {
-		this.account_user_id = account_user_id;
+	public void setAccountId(String account_id) {
+		this.account_id = account_id;
 	}
 
 	public long getDomainId() {

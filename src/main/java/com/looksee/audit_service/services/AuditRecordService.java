@@ -1,15 +1,13 @@
 package com.looksee.audit_service.services;
 
-import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.audit_service.AuditRecord;
+import com.looksee.audit_service.model.AuditRecord;
 import com.looksee.audit_service.models.repository.AuditRecordRepository;
 
 
@@ -27,9 +25,6 @@ public class AuditRecordService {
 
 	@Autowired
 	private AuditRecordRepository audit_record_repo;
-	
-	@Autowired
-	private DomainService domain_service;
 	
 	
 	/*
@@ -54,15 +49,23 @@ public class AuditRecordService {
 	}
 	*/
 	
+	public AuditRecord save(AuditRecord audit) {
+		return audit_record_repo.save(audit);
+	}
+	
+	public Optional<AuditRecord> findById(long id) {
+		return audit_record_repo.findById(id);
+	}
+	
+	
+	/*
 	public AuditRecord save(AuditRecord audit, String account_id, long domain_id) {
 		assert audit != null;
 
 		AuditRecord audit_record = audit_record_repo.save(audit);
 		
-		if(audit instanceof DomainAuditRecord 
+		if(audit instanceof DomainAuditRecord
 				&& account_id != null 
-				&& account_id >= 0 
-				&& domain_id != null 
 				&& domain_id >= 0) 
 		{
 			try {
@@ -77,9 +80,6 @@ public class AuditRecordService {
 		return audit_record;
 	}
 	
-	public Optional<AuditRecord> findById(long id) {
-		return audit_record_repo.findById(id);
-	}
 	
 	public AuditRecord findByKey(String key) {
 		return audit_record_repo.findByKey(key);
@@ -90,7 +90,7 @@ public class AuditRecordService {
 		// TODO Auto-generated method stub
 		return IterableUtils.toList(audit_record_repo.findAll());
 	}
-	
+	*/
 	/*
 	public void addAudit(String audit_record_key, String audit_key) {
 		//check if audit already exists for page state
@@ -238,7 +238,8 @@ public class AuditRecordService {
 		
 		return audit_record_repo.getPageStateForAuditRecord(page_audit_key);
 	}
-
+*/
+	/*
 	public Set<Audit> getAllContentAuditsForDomainRecord(long id) {
 		return audit_record_repo.getAllContentAuditsForDomainRecord(id);
 	}
@@ -253,22 +254,6 @@ public class AuditRecordService {
 
 	public Set<Audit> getAllAestheticAuditsForDomainRecord(long id) {
 		return audit_record_repo.getAllAestheticsAuditsForDomainRecord(id);
-	}
-
-	public Set<Audit> getAllContentAudits(long audit_record_id) {
-		return audit_record_repo.getAllContentAudits(audit_record_id);
-	}
-
-	public Set<Audit> getAllInformationArchitectureAudits(long id) {
-		return audit_record_repo.getAllInformationArchitectureAudits(id);
-	}
-
-	public Set<Audit> getAllAccessibilityAudits(Long id) {
-		return audit_record_repo.getAllAccessibilityAudits(id);
-	}
-
-	public Set<Audit> getAllAestheticAudits(long id) {
-		return audit_record_repo.getAllAestheticsAudits(id);
 	}
 
 	public PageState getPageStateForAuditRecord(long page_audit_id) {

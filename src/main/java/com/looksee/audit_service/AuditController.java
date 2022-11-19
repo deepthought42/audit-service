@@ -18,7 +18,10 @@ package com.looksee.audit_service;
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
 import java.util.Base64;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +36,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.protobuf.ByteString;
+import com.google.pubsub.v1.PubsubMessage;
+import com.looksee.audit_service.gcp.PubSubPublisherImpl;
 import com.looksee.audit_service.mapper.Body;
+import com.looksee.audit_service.model.AuditRecord;
+import com.looksee.audit_service.model.PageAuditRecord;
 import com.looksee.audit_service.model.dto.PageBuiltMessage;
 import com.looksee.audit_service.models.enums.ExecutionStatus;
 import com.looksee.audit_service.services.AuditRecordService;
@@ -46,8 +56,11 @@ public class AuditController {
 	@Autowired
 	private AuditRecordService audit_record_service;
 	
+	@Autowired
+	private PubSubPublisherImpl pubSubPublisherImpl;
+	
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  public ResponseEntity receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException {
+  public ResponseEntity receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException {
 	  log.warn("body :: "+body);
 	  // Get PubSub message from request body.
     Body.Message message = body.getMessage();
@@ -66,7 +79,6 @@ public class AuditController {
     byte[] decodedBytes = Base64.getUrlDecoder().decode(data);
     String decoded_json = new String(decodedBytes);
 
-    log.warn("decoded json = "+decoded_json);
     
     //create ObjectMapper instance
 	ObjectMapper objectMapper = new ObjectMapper();
@@ -77,19 +89,37 @@ public class AuditController {
 
 	AuditRecord audit_record = new PageAuditRecord(ExecutionStatus.BUILDING_PAGE, true);
 	
-	audit_record = audit_record_service.save(audit_record, audit_record_msg.getAccountUserId(), audit_record_msg.getDomainId());
+	audit_record = audit_record_service.save(audit_record);
 	audit_record_service.addPageAuditToDomainAudit(audit_record_msg.getDomainAuditId(), audit_record.getId());
 	
 	audit_record_service.addPageToAuditRecord(audit_record.getId(), audit_record_msg.getPageId());
 	
-	// AuditRecord audit_record = audit_record_service.findById(audit_record.getId()).get();
+	Map<String, String> attributeMap = new HashMap<>();
+	attributeMap.put("accountId", audit_record_msg.getAccountId());
+	attributeMap.put("domainAuditId", audit_record_msg.getDomainAuditId()+"");
+	attributeMap.put("pageAuditId", audit_record.getId()+"");
+	attributeMap.put("pageId", audit_record_msg.getPageId()+"");
+	
+	/*
+    PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
+            .putAllAttributes(attributeMap)
+            .setData(ByteString.copyFromUtf8("Audit record not found"))
+            .setMessageId(UUID.randomUUID().toString())
+            .build();
+    */
+	JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();;
+    String audit_record_json = mapper.writeValueAsString(attributeMap);
+	System.out.println("audit record json = " + audit_record_json);
+			
+    log.warn("pub sub message = "+audit_record_json);
     if(audit_record == null) {
     	//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
-    	
+    	pubSubPublisherImpl.publish(audit_record_json);
     }
     else {
     	//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
-
+    	pubSubPublisherImpl.publish(audit_record_json);
+    	
     	/*
 		log.warn("Initiating page audit = "+audit_record.getId());
 		ActorRef audit_manager = actor_system.actorOf(SpringExtProvider.get(actor_system)
@@ -97,7 +127,6 @@ public class AuditController {
 		audit_manager.tell(message, ActorRef.noSender());
 		*/
     }
-  
     
     return new ResponseEntity("Successfully sent message to audit manager", HttpStatus.OK);
     
@@ -110,6 +139,18 @@ public class AuditController {
     return new ResponseEntity(msg, HttpStatus.OK);
     */
   }
+  /*
+  public void publishMessage(String messageId, Map<String, String> attributeMap, String message) throws ExecutionException, InterruptedException {
+      log.info("Sending Message to the topic:::");
+      PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
+              .putAllAttributes(attributeMap)
+              .setData(ByteString.copyFromUtf8(message))
+              .setMessageId(messageId)
+              .build();
+
+      pubSubPublisherImpl.publish(pubsubMessage);
+  }
+  */
 }
 // [END run_pubsub_handler]
 // [END cloudrun_pubsub_handler]

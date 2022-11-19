@@ -8,8 +8,8 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.looksee.audit_service.AuditRecord;
-import com.looksee.audit_service.PageAuditRecord;
+import com.looksee.audit_service.model.AuditRecord;
+import com.looksee.audit_service.model.PageAuditRecord;
 
 import io.github.resilience4j.retry.annotation.Retry;
 
@@ -43,4 +43,5 @@ public interface AuditRecordRepository extends Neo4jRepository<AuditRecord, Long
 
 	@Query("MATCH (ar:AuditRecord) WITH ar MATCH (page:PageState) WHERE id(ar)=$audit_record_id AND id(page)=$page_state_id MERGE (ar)-[h:HAS]->(page) RETURN ar")
 	public void addPageToAuditRecord(@Param("audit_record_id") long audit_record_id, @Param("page_state_id") long page_state_id);
+
 }

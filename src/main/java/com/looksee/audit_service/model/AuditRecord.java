@@ -1,4 +1,4 @@
-package com.looksee.audit_service;
+package com.looksee.audit_service.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

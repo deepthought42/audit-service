@@ -1,4 +1,4 @@
-package com.looksee.audit_service;
+package com.looksee.audit_service.model;
 
 import com.looksee.audit_service.models.enums.AuditLevel;
 import com.looksee.audit_service.models.enums.ExecutionStatus;
@@ -8,8 +8,7 @@ import com.looksee.audit_service.models.enums.ExecutionStatus;
  * Record detailing an set of {@link Audit audits}.
  */
 public class PageAuditRecord extends AuditRecord {
-	
-	private String status;
+
 	private long elements_found;
 	private long elements_reviewed;
 	
@@ -40,14 +39,6 @@ public class PageAuditRecord extends AuditRecord {
 
 	public String generateKey() {
 		return "pageauditrecord:"+org.apache.commons.codec.digest.DigestUtils.sha256Hex( System.currentTimeMillis() + " " );
-	}
-
-	public ExecutionStatus getStatus() {
-		return ExecutionStatus.create(status);
-	}
-
-	public void setStatus(ExecutionStatus status) {
-		this.status = status.getShortName();
 	}
 
 	public long getElementsFound() {

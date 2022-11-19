@@ -7,8 +7,6 @@ import java.util.UUID;
 
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-import com.looksee.audit_service.AuditRecord;
-import com.looksee.audit_service.PageAuditRecord;
 import com.looksee.audit_service.models.enums.AuditLevel;
 import com.looksee.audit_service.models.enums.ExecutionStatus;
 
