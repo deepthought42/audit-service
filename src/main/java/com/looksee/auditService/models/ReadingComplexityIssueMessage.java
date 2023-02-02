@@ -5,7 +5,6 @@ import java.util.Set;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.Priority;
 
-
 /**
  * A observation of potential error for a given {@link Element element} 
  */

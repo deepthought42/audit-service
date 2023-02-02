@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.api.client.util.Value;
 import com.looksee.auditService.models.enums.SubscriptionPlan;
+
 /**
  * Provides methods to check if an {@link Account} user has permission to access a restricted resource and verifying that
  * the {@link Account} user has not exceeded their usage.

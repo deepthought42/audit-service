@@ -5,31 +5,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.neo4j.core.schema.Node;
+
 import com.looksee.auditService.models.enums.AuditLevel;
 import com.looksee.auditService.models.enums.ExecutionStatus;
+
 
 /**
  * Record detailing an set of {@link Audit audits}.
  */
-public class AuditRecord extends LookseeObject {
-	private String url;
-	
+@Node
+public class AuditRecord extends LookseeObject {	
 	private String status;
 	private String statusMessage;
 	private String level;
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
-	private double contentAuditProgress;
-	private String contentAuditMsg;
 	
-	private double infoArchitectureAuditProgress;
-	private String infoArchMsg;
-	
-	private double aestheticAuditProgress;
-	private String aestheticMsg;
-	
-	private double dataExtractionProgress;
-	private String dataExtractionMsg;
 
 	private String targetUserAge;
 	private String targetUserEducation;
@@ -40,18 +32,19 @@ public class AuditRecord extends LookseeObject {
 	public AuditRecord() {
 		setStartTime(LocalDateTime.now());
 		setStatus(ExecutionStatus.UNKNOWN);
-		setUrl("");
 		setStatusMessage("");
 		setLevel(AuditLevel.UNKNOWN);
-		setContentAuditProgress(0.0);
-		setContentAuditMsg("");
-		setInfoArchitectureAuditProgress(0.0);
-		setInfoArchMsg("");
-		setAestheticAuditProgress(0.0);
-		setAestheticMsg("");
-		setDataExtractionProgress(0.0);
-		setDataExtractionMsg("");
-		setColors(new ArrayList<>());
+		
+		setColors(new ArrayList<String>());
+	}
+	
+	public AuditRecord(ExecutionStatus status) {
+		setStartTime(LocalDateTime.now());
+		setStatus(status);
+		setStatusMessage("");
+		setLevel(AuditLevel.UNKNOWN);
+		
+		setColors(new ArrayList<String>());
 	}
 	
 	/**
@@ -64,35 +57,17 @@ public class AuditRecord extends LookseeObject {
 					   AuditLevel level, 
 					   String key, 
 					   LocalDateTime startTime,
-					   double aestheticAuditProgress, 
-					   String aestheticMsg, 
-					   String contentAuditMsg, 
-					   double contentAuditProgress,
-					   String infoArchMsg, 
-					   double infoArchAuditProgress, 
-					   String dataExtractionMsg, 
-					   double dataExtractionProgress,
 					   LocalDateTime created_at, 
-					   LocalDateTime endTime, 
-					   String url
+					   LocalDateTime endTime
 	) {
 		setId(id);
 		setStatus(status);
 		setLevel(level);
 		setKey(key);
 		setStartTime(endTime);
-		setAestheticAuditProgress(dataExtractionProgress);
-		setAestheticMsg(aestheticMsg);
-		setContentAuditMsg(contentAuditMsg);
-		setContentAuditProgress(contentAuditProgress);
-		setInfoArchMsg(infoArchMsg);
-		setInfoArchitectureAuditProgress(infoArchAuditProgress);
-		setDataExtractionMsg(dataExtractionMsg);
-		setDataExtractionProgress(dataExtractionProgress);
 		setCreatedAt(created_at);
 		setEndTime(endTime);
-		setColors(new ArrayList<>());
-		setUrl(url);
+		setColors(new ArrayList<String>());
 	}
 
 	public String generateKey() {
@@ -130,70 +105,6 @@ public class AuditRecord extends LookseeObject {
 	public void setEndTime(LocalDateTime end_time) {
 		this.endTime = end_time;
 	}
-	
-	public double getContentAuditProgress() {
-		return contentAuditProgress;
-	}
-
-	public void setContentAuditProgress(double content_audit_progress) {
-		this.contentAuditProgress = content_audit_progress;
-	}
-
-	public double getInfoArchitechtureAuditProgress() {
-		return infoArchitectureAuditProgress;
-	}
-
-	public void setInfoArchitectureAuditProgress(double info_arch_audit_progress) {
-		this.infoArchitectureAuditProgress = info_arch_audit_progress;
-	}
-
-	public double getAestheticAuditProgress() {
-		return aestheticAuditProgress;
-	}
-
-	public void setAestheticAuditProgress(double aesthetic_audit_progress) {
-		this.aestheticAuditProgress = aesthetic_audit_progress;
-	}
-
-	public String getContentAuditMsg() {
-		return contentAuditMsg;
-	}
-
-	public void setContentAuditMsg(String content_audit_msg) {
-		this.contentAuditMsg = content_audit_msg;
-	}
-	
-	public String getInfoArchMsg() {
-		return infoArchMsg;
-	}
-
-	public void setInfoArchMsg(String info_arch_msg) {
-		this.infoArchMsg = info_arch_msg;
-	}
-
-	public String getAestheticMsg() {
-		return aestheticMsg;
-	}
-
-	public void setAestheticMsg(String aesthetic_msg) {
-		this.aestheticMsg = aesthetic_msg;
-	}
-
-	public double getDataExtractionProgress() {
-		return dataExtractionProgress;
-	}
-
-	public void setDataExtractionProgress(double data_extraction_progress) {
-		this.dataExtractionProgress = data_extraction_progress;
-	}
-
-	public String getDataExtractionMsg() {
-		return dataExtractionMsg;
-	}
-
-	public void setDataExtractionMsg(String data_extraction_msg) {
-		this.dataExtractionMsg = data_extraction_msg;
-	}
 
 	public String getTargetUserAge() {
 		return targetUserAge;
@@ -221,14 +132,7 @@ public class AuditRecord extends LookseeObject {
 	
 	@Override
 	public String toString() {
-		return this.getId()+", "+this.getKey()+", "+this.getUrl()+", "+this.getStatus()+", "+this.getStatusMessage();
-	}
-	
-	public boolean isComplete() {
-		return (this.getAestheticAuditProgress() >= 1.0
-				&& this.getContentAuditProgress() >= 1.0
-				&& this.getInfoArchitechtureAuditProgress() >= 1.0
-				&& this.getDataExtractionProgress() >= 1.0);
+		return this.getId()+", "+this.getKey()+", "+this.getStatus()+", "+this.getStatusMessage();
 	}
 	
 	@Override
@@ -238,25 +142,8 @@ public class AuditRecord extends LookseeObject {
 							   getLevel(),
 							   getKey(),
 							   getStartTime(),
-							   getAestheticAuditProgress(), 
-							   getAestheticMsg(), 
-							   getContentAuditMsg(), 
-							   getContentAuditProgress(), 
-							   getInfoArchMsg(), 
-							   getInfoArchitechtureAuditProgress(),
-							   getDataExtractionMsg(), 
-							   getDataExtractionProgress(), 
 							   getCreatedAt(), 
-							   getEndTime(),
-							   getUrl());
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
+							   getEndTime());
 	}
 
 	public List<String> getColors() {

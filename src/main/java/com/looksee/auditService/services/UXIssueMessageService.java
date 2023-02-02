@@ -7,17 +7,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.looksee.auditService.models.repository.ColorContrastIssueMessageRepository;
+import com.looksee.auditService.models.repository.UXIssueMessageRepository;
 import com.looksee.auditService.models.ColorContrastIssueMessage;
 import com.looksee.auditService.models.ElementState;
 import com.looksee.auditService.models.UXIssueMessage;
-import com.looksee.auditService.models.repository.ColorContrastIssueMessageRepository;
-import com.looksee.auditService.models.repository.UXIssueMessageRepository;
 
 import io.github.resilience4j.retry.annotation.Retry;
 
 @Service
 @Retry(name="neoforj")
 public class UXIssueMessageService {
+	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(UXIssueMessageService.class);
 
 	@Autowired

@@ -13,7 +13,6 @@ import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.Score;
 import com.looksee.auditService.models.enums.AuditSubcategory;
 
-
 @Service
 public class PDFDocUtils {
 	

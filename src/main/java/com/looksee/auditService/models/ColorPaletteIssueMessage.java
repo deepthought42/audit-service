@@ -10,7 +10,6 @@ import com.looksee.auditService.models.enums.ColorScheme;
 import com.looksee.auditService.models.enums.ObservationType;
 import com.looksee.auditService.models.enums.Priority;
 
-
 /**
  * A observation of potential error for a given color palette 
  */

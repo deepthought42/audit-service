@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looksee.auditService.models.enums.BrowserType;
@@ -63,7 +64,7 @@ public class PageState extends LookseeObject {
 	private Set<String> keywords;
 	private int httpStatus;
 	
-	@Relationship(type = "HAS", direction = Relationship.Direction.INCOMING)
+	@Relationship(type = "HAS", direction = Direction.INCOMING)
 	private List<ElementState> elements;
 
 

@@ -6,10 +6,7 @@ import java.util.UUID;
 
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-/**
- * 
- * 
- */
+
 public class ImageLandmarkInfo extends LookseeObject{
 	
 	@Relationship(type="EXISTS_AT")

@@ -14,7 +14,6 @@ import com.looksee.auditService.models.enums.Priority;
  * A observation of potential error for a given color palette 
  */
 public class ColorContrastIssueMessage extends ElementStateIssueMessage{
-	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ColorContrastIssueMessage.class);
 
 	private double contrast;

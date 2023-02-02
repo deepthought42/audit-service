@@ -1,6 +1,6 @@
 FROM adoptopenjdk/openjdk14
 
-COPY target/auditService-0.0.1-SNAPSHOT.jar look-see.jar
+COPY target/audit-update-service-0.0.1.jar look-see.jar
 COPY GCP-MyFirstProject-1c31159db52c.json GCP-MyFirstProject-1c31159db52c.json
 #COPY api_key.p12 /etc/certs/api_key.p12
 COPY gmail_credentials.json /etc/creds/gmail_credentials.json

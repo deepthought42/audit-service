@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.looksee.auditService.models.Audit;
-import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.AuditScore;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.ReadingComplexityIssueMessage;
@@ -156,17 +155,16 @@ public class AuditUtils {
     	return score / (double)count;
 	}
 
-	public static boolean isPageAuditComplete(AuditRecord audit_record) {
+	public static boolean isPageAuditComplete(PageAuditRecord audit_record) {
 		return audit_record.getAestheticAuditProgress() >= 1 
 			&& audit_record.getContentAuditProgress() >= 1
-			&& audit_record.getInfoArchitechtureAuditProgress() >= 1
-			&& audit_record.getDataExtractionProgress() >= 1;
+			&& audit_record.getInfoArchitechtureAuditProgress() >= 1;
 	}
 
 	public static String getExperienceRating(PageAuditRecord audit_record) {
 		double score = audit_record.getAestheticAuditProgress();
 		score += audit_record.getContentAuditProgress();
-		score += audit_record.getInfoArchitechtureAuditProgress();
+		score += audit_record.getContentAuditProgress();
 		
 		double final_score = score / 3;
 		if(final_score >= 80) {

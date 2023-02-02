@@ -10,7 +10,6 @@ import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ObservationType;
 import com.looksee.auditService.models.enums.Priority;
 
-
 public class UXIssueMessage extends LookseeObject {
 	private static Logger log = LoggerFactory.getLogger(UXIssueMessage.class);
 

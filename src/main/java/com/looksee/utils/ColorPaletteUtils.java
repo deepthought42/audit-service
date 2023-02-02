@@ -22,7 +22,6 @@ import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ColorScheme;
 import com.looksee.auditService.models.enums.Priority;
 
-
 /**
  * 
  */

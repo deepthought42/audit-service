@@ -2,6 +2,7 @@ package com.looksee.auditService.models;
 
 import java.util.Set;
 
+
 public class PageStateAudits {
 	
 	private SimplePage page;
