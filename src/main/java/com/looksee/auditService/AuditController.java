@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
@@ -40,10 +42,12 @@ import com.looksee.auditService.mapper.Body;
 import com.looksee.auditService.models.Account;
 import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.AuditProgressUpdate;
+import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ExecutionStatus;
+import com.looksee.auditService.models.enums.JourneyStatus;
 import com.looksee.auditService.models.message.DiscardedJourneyMessage;
 import com.looksee.auditService.models.message.JourneyCandidateMessage;
 import com.looksee.auditService.models.message.VerifiedJourneyMessage;
@@ -82,7 +86,7 @@ public class AuditController {
 	    ObjectMapper input_mapper = new ObjectMapper();
 	    
 	    JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
-
+	    
 	    //if message is audit message then update page audit
 	    try {
 		    AuditProgressUpdate audit_msg = input_mapper.readValue(target, AuditProgressUpdate.class);
@@ -124,12 +128,23 @@ public class AuditController {
 	    	log.warn("An exception occurred while converting JSON to AuditProgressUpdate");
 	    }
 	    
+	    //Get Domain Audit Record
+	  
+	    
+	    
+	    Map<String, JourneyStatus> status_map = new HashMap<>();
 	    String journey_key = "";
 	    //if input mapper can convert Journey Candidate, then 
 	    //      1. Update JourneyStatus for journey key in domain audit to Candidate
 	    try {
 		    JourneyCandidateMessage journey_candidate_msg = input_mapper.readValue(target, JourneyCandidateMessage.class);
 		    journey_key = journey_candidate_msg.getJourney().getKey();
+		    
+		    DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(journey_candidate_msg.getDomainAuditRecordId()).get();
+
+		    status_map = domain_audit.getJourneyStatusMap();
+		    status_map.put(journey_key, JourneyStatus.READY);
+
 	    }
 	    catch(Exception e) {
 	    	log.warn("error converting json string to JourneyCandidateMessage");
@@ -140,6 +155,12 @@ public class AuditController {
 	    try {
 		    VerifiedJourneyMessage verified_journey_msg = input_mapper.readValue(target, VerifiedJourneyMessage.class);
 		    journey_key = verified_journey_msg.getJourney().getKey();
+		    
+		    DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(verified_journey_msg.getDomainAuditRecordId()).get();
+
+		    status_map = domain_audit.getJourneyStatusMap();
+		    status_map.put(journey_key, JourneyStatus.EXAMINED);
+
 	    }
 	    catch(Exception e) {
 	    	log.warn("error converting json string to VerifiedJourneyMessage");
@@ -151,18 +172,22 @@ public class AuditController {
 	    try {
 		    DiscardedJourneyMessage discarded_journey_msg = input_mapper.readValue(target, DiscardedJourneyMessage.class);
 		    journey_key = discarded_journey_msg.getJourney().getKey();
+
+		    DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(discarded_journey_msg.getDomainAuditRecordId()).get();
+
+		    status_map = domain_audit.getJourneyStatusMap();
+		    status_map.put(journey_key, JourneyStatus.DISCARDED);
 	    }
 	    catch(Exception e) {
 	    	log.warn("error converting json string to VerifiedJourneyMessage");
 	    }
 	    
+	    
 	    log.warn("journey key retrieved : " + journey_key);
 	    // update data extraction of domain audit to equal the number of journey keys that do NOT have an empty string associated with them over the
 	    //       number of journeys present in domain audit
 	    
-	    //if domain audit is complete, then send email to user informing them of it's completion
-	    
-		
+	    //if domain audit is complete, then send email to user informing them of it's completion		
 		
 		return new ResponseEntity<String>("Successfully saved updated audit record", HttpStatus.OK);
   }
