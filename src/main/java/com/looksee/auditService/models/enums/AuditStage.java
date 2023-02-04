@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * Defines all {@link AuditStage stages} of {@link Audit audits} that exist in the system
  */
 public enum AuditStage {
-	DATA_EXTRACTION("data_extraction"),
-	AUDIT("audit"),
+	PRERENDER("prerender"),
+	RENDERED("rendered"),
 	UNKNOWN("unknown");
 	
 	private String shortName;
@@ -28,7 +28,7 @@ public enum AuditStage {
         }
         
         for(AuditStage v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

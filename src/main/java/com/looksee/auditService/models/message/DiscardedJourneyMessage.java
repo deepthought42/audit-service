@@ -11,7 +11,9 @@ public class DiscardedJourneyMessage extends Message {
 	private long accountId;
 	private long auditRecordId;
    
-	private DiscardedJourneyMessage(Journey journey, 
+	public DiscardedJourneyMessage() {}
+	
+	public DiscardedJourneyMessage(Journey journey, 
 								   BrowserType browserType, 
 								   long domainId, 
 								   long accountId, 

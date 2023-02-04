@@ -199,8 +199,8 @@ public class AuditRecordService {
 		return audit_record_repo.getAllPageParagraphingAudits(audit_record_key);
 	}
 
-	public Set<PageAuditRecord> getAllPageAudits(long audit_record_id) {		
-		return audit_record_repo.getAllPageAudits(audit_record_id);
+	public Set<PageAuditRecord> getAllPageAudits(long domain_audit_id) {		
+		return audit_record_repo.getAllPageAudits(domain_audit_id);
 	}
 	
 	public Set<Audit> getAllAuditsForPageAuditRecord(long page_audit_id) {		

@@ -21,7 +21,9 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,24 +38,21 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.auditService.mapper.Body;
 import com.looksee.auditService.models.Account;
-import com.looksee.auditService.models.Audit;
-import com.looksee.auditService.models.AuditProgressUpdate;
+import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.PageAuditRecord;
-import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ExecutionStatus;
 import com.looksee.auditService.models.enums.JourneyStatus;
+import com.looksee.auditService.models.message.AuditProgressUpdate;
 import com.looksee.auditService.models.message.DiscardedJourneyMessage;
 import com.looksee.auditService.models.message.JourneyCandidateMessage;
 import com.looksee.auditService.models.message.VerifiedJourneyMessage;
 import com.looksee.auditService.services.AccountService;
 import com.looksee.auditService.services.AuditRecordService;
-import com.looksee.auditService.services.AuditService;
+import com.looksee.auditService.services.DomainService;
 import com.looksee.auditService.services.SendGridMailService;
 import com.looksee.utils.AuditUtils;
 
@@ -66,13 +65,13 @@ public class AuditController {
 	private AuditRecordService audit_record_service;
 	
 	@Autowired
-	private AuditService audit_service;
+	private AccountService account_service;
+	
+	@Autowired
+	private DomainService domain_service;
 	
 	@Autowired
 	private SendGridMailService mail_service;
-	
-	@Autowired
-	private AccountService account_service;
 	
 	
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -85,7 +84,7 @@ public class AuditController {
 
 	    ObjectMapper input_mapper = new ObjectMapper();
 	    
-	    JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
+	    //JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 	    
 	    //if message is audit message then update page audit
 	    try {
@@ -93,39 +92,64 @@ public class AuditController {
 			//update audit record
 			PageAuditRecord audit_record = (PageAuditRecord)audit_record_service.findById(audit_msg.getPageAuditId()).get();
 			
-			Audit audit = audit_service.save(audit_msg.getAudit());
-			audit_record_service.addAudit( audit_record.getId(), audit.getId() );
-			
-			if(AuditCategory.AESTHETICS.equals(audit.getCategory())) {
+			if(AuditCategory.AESTHETICS.equals(audit_msg.getCategory())) {
 				audit_record.setAestheticAuditProgress(audit_msg.getProgress());
 			}
-			if(AuditCategory.CONTENT.equals(audit.getCategory())) {
+			if(AuditCategory.CONTENT.equals(audit_msg.getCategory())) {
 				audit_record.setContentAuditProgress(audit_msg.getProgress());
 			}
-			if(AuditCategory.INFORMATION_ARCHITECTURE.equals(audit.getCategory())) {
+			if(AuditCategory.INFORMATION_ARCHITECTURE.equals(audit_msg.getCategory())) {
 				audit_record.setInfoArchitectureAuditProgress(audit_msg.getProgress());
 			}
 			
+			//if page audit is complete then 
 			boolean is_page_audit_complete = AuditUtils.isPageAuditComplete(audit_record);
 			
 			if(is_page_audit_complete) {
 				audit_record.setEndTime(LocalDateTime.now());
 				audit_record.setStatus(ExecutionStatus.COMPLETE);
-			
-				PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());								
-				Account account = account_service.findById(audit_msg.getAccountId()).get();
 				
-				log.warn("sending email to account :: "+account.getEmail());
-				mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
+				//TODO: move following logic to domain audit
+				//PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());								
+				//Account account = account_service.findById(audit_msg.getAccountId()).get();
+				//log.warn("sending email to account :: "+account.getEmail());
+				//mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
 			}
 			
 			audit_record = (PageAuditRecord)audit_record_service.save(audit_record);	
 			
+			log.warn("sending audit record update to user");
 			//TODO : publish Pusher Domain Audit update
 			MessageBroadcaster.sendAuditRecord(audit_msg.getAccountId()+"", null);
+			
+		    //DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
+		    Set<PageAuditRecord> page_audits = audit_record_service.getAllPageAudits(audit_msg.getDomainAuditRecordId());
+		    
+			//if domain audit is complete then send email
+			page_audits = page_audits.stream()
+										.filter(audit -> audit.getAestheticAuditProgress() < 1.0)
+										.filter(audit -> audit.getContentAuditProgress() < 1.0)
+										.filter(audit -> audit.getInfoArchitechtureAuditProgress() < 1.0)
+										.collect(Collectors.toSet());
+
+			//if page audits is empty, then all audits are complete
+			if(page_audits.isEmpty() ) {
+			    DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
+			    if( domain_audit.getDataExtractionProgress() == 1 ){
+			    	//send email that audit is complete
+					Account account = account_service.findById(audit_msg.getAccountId()).get();
+					Domain domain = domain_service.findById(audit_msg.getDomainId()).get();
+					mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
+															  domain.getUrl(), 
+															  audit_msg.getDomainId());
+			    }
+			}
+			
+			return new ResponseEntity<String>("Successfully saved updated audit record", HttpStatus.OK);			
 	    }
 	    catch(Exception e) {
-	    	log.warn("An exception occurred while converting JSON to AuditProgressUpdate");
+	    	log.warn("An exception occurred while converting JSON to AuditProgressUpdate : "+e.getMessage());
+	    	//e.printStackTrace();
 	    }
 	    
 	    //Get Domain Audit Record
@@ -144,10 +168,13 @@ public class AuditController {
 
 		    status_map = domain_audit.getJourneyStatusMap();
 		    status_map.put(journey_key, JourneyStatus.READY);
+		    
+		    log.warn("journey candidate message deserialized");
 
 	    }
 	    catch(Exception e) {
-	    	log.warn("error converting json string to JourneyCandidateMessage");
+	    	log.warn("error converting json string to JourneyCandidateMessage : "+e.getMessage());
+	    	//e.printStackTrace();
 	    }
 	    
 	    //if input mapper can convert Journey Verified, then 
@@ -160,10 +187,10 @@ public class AuditController {
 
 		    status_map = domain_audit.getJourneyStatusMap();
 		    status_map.put(journey_key, JourneyStatus.EXAMINED);
-
+		    log.warn("verified journey message deserialized");
 	    }
 	    catch(Exception e) {
-	    	log.warn("error converting json string to VerifiedJourneyMessage");
+	    	log.warn("error converting json string to VerifiedJourneyMessage : "+e.getMessage());
 	    }
 	    
 	    //if input mapper can convert Journey Verified, then 
@@ -177,9 +204,10 @@ public class AuditController {
 
 		    status_map = domain_audit.getJourneyStatusMap();
 		    status_map.put(journey_key, JourneyStatus.DISCARDED);
+		    log.warn("Discarded journey message deserialized");
 	    }
 	    catch(Exception e) {
-	    	log.warn("error converting json string to VerifiedJourneyMessage");
+	    	log.warn("error converting json string to DiscardedJourneyMessage : "+e.getMessage());
 	    }
 	    
 	    
