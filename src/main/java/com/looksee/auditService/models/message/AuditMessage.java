@@ -17,8 +17,9 @@ public class AuditMessage extends Message {
 						 long domain_id, 
 						 long account_id, 
 						 long domain_audit_record_id,
-						 long page_audit_record_id){
-		super(domain_id, account_id, domain_audit_record_id);
+						 long page_audit_record_id)
+	{
+		super(account_id, domain_audit_record_id, domain_id);
 		setAudit(audit);
 		setAuditProgress(audit_progress);
 		setPageAuditRecordId(page_audit_record_id);

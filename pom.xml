@@ -340,13 +340,11 @@
                   </goals>
 	            </execution>
 	          </executions>
-		    </plugin>
+    	  </plugin>
 	      <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
     	  </plugin>
-	      <!-- [END run_pubsub_jib] -->
-	      <!-- [END cloudrun_pubsub_jib] -->
 	    </plugins>
   	</build>
     

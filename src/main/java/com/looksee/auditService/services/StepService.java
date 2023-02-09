@@ -17,13 +17,10 @@ import com.looksee.auditService.models.journeys.SimpleStep;
 import com.looksee.auditService.models.journeys.Step;
 import com.looksee.auditService.models.PageState;
 
-import io.github.resilience4j.retry.annotation.Retry;
-
 /**
  * Enables interacting with database for {@link SimpleStep Steps}
  */
 @Service
-@Retry(name = "neoforj")
 public class StepService {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(StepService.class);

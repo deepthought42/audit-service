@@ -20,8 +20,6 @@ import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.Screenshot;
 
-import io.github.resilience4j.retry.annotation.Retry;
-
 
 
 /**
@@ -29,7 +27,6 @@ import io.github.resilience4j.retry.annotation.Retry;
  *
  */
 @Service
-@Retry(name = "neoforj")
 public class PageStateService {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(PageStateService.class.getName());

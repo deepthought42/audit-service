@@ -38,11 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.auditService.mapper.Body;
 import com.looksee.auditService.models.Account;
 import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.PageAuditRecord;
+import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ExecutionStatus;
 import com.looksee.auditService.models.enums.JourneyStatus;
@@ -83,7 +85,7 @@ public class AuditController {
         log.warn("page audit msg received = "+target);
 
 	    ObjectMapper input_mapper = new ObjectMapper();
-	    
+	    input_mapper.registerModule(new JavaTimeModule());
 	    //JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 	    
 	    //if message is audit message then update page audit
@@ -109,46 +111,50 @@ public class AuditController {
 				audit_record.setEndTime(LocalDateTime.now());
 				audit_record.setStatus(ExecutionStatus.COMPLETE);
 				
-				//TODO: move following logic to domain audit
-				//PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());								
-				//Account account = account_service.findById(audit_msg.getAccountId()).get();
-				//log.warn("sending email to account :: "+account.getEmail());
-				//mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
+				//if it's a page audit then send page audit complete email
+				if(audit_msg.getDomainAuditRecordId() < 0) {
+					PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());								
+					Account account = account_service.findById(audit_msg.getAccountId()).get();
+					log.warn("sending email to account :: "+account.getEmail());
+					mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
+				}
 			}
 			
 			audit_record = (PageAuditRecord)audit_record_service.save(audit_record);	
 			
-			log.warn("sending audit record update to user");
-			//TODO : publish Pusher Domain Audit update
-			MessageBroadcaster.sendAuditRecord(audit_msg.getAccountId()+"", null);
-			
-		    //DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
-		    Set<PageAuditRecord> page_audits = audit_record_service.getAllPageAudits(audit_msg.getDomainAuditRecordId());
-		    
-			//if domain audit is complete then send email
-			page_audits = page_audits.stream()
-										.filter(audit -> audit.getAestheticAuditProgress() < 1.0)
-										.filter(audit -> audit.getContentAuditProgress() < 1.0)
-										.filter(audit -> audit.getInfoArchitechtureAuditProgress() < 1.0)
-										.collect(Collectors.toSet());
-
-			//if page audits is empty, then all audits are complete
-			if(page_audits.isEmpty() ) {
-			    DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
-			    if( domain_audit.getDataExtractionProgress() == 1 ){
-			    	//send email that audit is complete
-					Account account = account_service.findById(audit_msg.getAccountId()).get();
-					Domain domain = domain_service.findById(audit_msg.getDomainId()).get();
-					mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
-															  domain.getUrl(), 
-															  audit_msg.getDomainId());
-			    }
+			if(audit_msg.getDomainAuditRecordId() >= 0) {
+				
+				log.warn("sending audit record update to user");
+				MessageBroadcaster.sendAuditRecord(audit_msg.getAccountId()+"", null);
+				
+			    //DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
+			    Set<PageAuditRecord> page_audits = audit_record_service.getAllPageAudits(audit_msg.getDomainAuditRecordId());
+			    
+				//if domain audit is complete then send email
+				page_audits = page_audits.stream()
+											.filter(audit -> audit.getAestheticAuditProgress() < 1.0)
+											.filter(audit -> audit.getContentAuditProgress() < 1.0)
+											.filter(audit -> audit.getInfoArchitechtureAuditProgress() < 1.0)
+											.collect(Collectors.toSet());
+	
+				//if page audits is empty, then all audits are complete
+				if(page_audits.isEmpty() ) {
+				    DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
+				    if( domain_audit.getDataExtractionProgress() == 1 ){
+				    	//send email that audit is complete
+						Account account = account_service.findById(audit_msg.getAccountId()).get();
+						Domain domain = domain_service.findById(audit_msg.getDomainId()).get();
+						mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
+																  domain.getUrl(), 
+																  audit_msg.getDomainId());
+				    }
+				}
 			}
 			
 			return new ResponseEntity<String>("Successfully saved updated audit record", HttpStatus.OK);			
 	    }
 	    catch(Exception e) {
-	    	log.warn("An exception occurred while converting JSON to AuditProgressUpdate : "+e.getMessage());
+	    	//log.warn("An exception occurred while converting JSON to AuditProgressUpdate : "+e.getMessage());
 	    	//e.printStackTrace();
 	    }
 	    
