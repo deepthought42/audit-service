@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.LookseeObject;
-import com.looksee.auditService.models.dto.DomainDto;
+import com.looksee.auditService.models.dto.AuditUpdateDto;
 import com.pusher.rest.Pusher;
 
 import org.slf4j.Logger;
@@ -46,11 +46,11 @@ public class MessageBroadcaster {
 	 * @param account_id
 	 * @param audit
 	 */
-	public static void sendAuditRecord(String user_id, DomainDto domain_dto) throws JsonProcessingException {
+	public static void sendAuditUpdate(String account_id, AuditUpdateDto audit_update) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
 
-		String domain_dto_json = mapper.writeValueAsString(domain_dto);
-		pusher.trigger(user_id, "audit-record", domain_dto_json);
+		String audit_update_str = mapper.writeValueAsString(audit_update);
+		pusher.trigger(account_id, "audit-update", audit_update_str);
 	}
 }

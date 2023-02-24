@@ -155,7 +155,25 @@ public class AuditUtils {
     	return score / (double)count;
 	}
 
+	/**
+	 * Checks if all expected audit names exist within the Audit
+	 * 
+	 * @param audits
+	 * @param audit_list
+	 * @return
+	 */
+	public static boolean isPageAuditComplete( Set<Audit> audits, 
+											   List<AuditName> audit_list) {
+		for(Audit audit : audits) {
+			audit_list.remove(audit.getName());
+		}
+		
+		return audit_list.isEmpty();
+	}
+	
+	@Deprecated
 	public static boolean isPageAuditComplete(PageAuditRecord audit_record) {
+		
 		return audit_record.getAestheticAuditProgress() >= 1 
 			&& audit_record.getContentAuditProgress() >= 1
 			&& audit_record.getInfoArchitechtureAuditProgress() >= 1;

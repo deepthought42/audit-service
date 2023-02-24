@@ -27,7 +27,7 @@ resilience4j.retry:
                 - java.lang.NullPointerException
         neoforj:
             maxAttempts: 10
-            waitDuration: 1s
+            waitDuration: 10s
             retryExceptions:
                 - org.neo4j.ogm.exception.ConnectionException
                 - org.neo4j.driver.exceptions.SessionExpiredException

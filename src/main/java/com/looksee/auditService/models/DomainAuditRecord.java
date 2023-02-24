@@ -1,36 +1,37 @@
 package com.looksee.auditService.models;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.looksee.auditService.models.enums.AuditLevel;
+import com.looksee.auditService.models.enums.AuditName;
 import com.looksee.auditService.models.enums.ExecutionStatus;
 import com.looksee.auditService.models.enums.JourneyStatus;
-
 
 /**
  * Record detailing an set of {@link Audit audits}.
  */
+@Node
 public class DomainAuditRecord extends AuditRecord {
 	
-	private double dataExtractionProgress;
-	private String dataExtractionMsg;
+	@Relationship(type = "HAS")
+	private Set<PageAuditRecord> pageAuditRecords;
+	
 	
 	private int total_pages;
 	private Map<String, JourneyStatus> journey_status_map;
 	
-	@Relationship(type = "HAS")
-	private Set<PageAuditRecord> page_audit_records;
-	
+
 	public DomainAuditRecord() {
 		super();
-		setAudits(new HashSet<>());
+		setAudits(new HashSet<>()); 
 	}
 	
 	/**
@@ -41,59 +42,41 @@ public class DomainAuditRecord extends AuditRecord {
 	 * 
 	 * @pre audit_stats != null;
 	 */
-	public DomainAuditRecord(ExecutionStatus status) {
-		super(status);
+	public DomainAuditRecord(ExecutionStatus status, 
+							List<AuditName> audit_list) {
+		super();
 		assert status != null;
 		
 		setAudits(new HashSet<>());
+		setStatus(status);
 		setLevel( AuditLevel.DOMAIN);
 		setStartTime(LocalDateTime.now());
-		setTotalPages(0);
+		setAestheticAuditProgress(0.0);
+		setContentAuditProgress(0.0);
+		setInfoArchitectureAuditProgress(0.0);
 		setDataExtractionProgress(0.0);
-		setDataExtractionMsg("");
+		setAuditLabels(audit_list);
 		setKey(generateKey());
 	}
 
-	/**
-	 * Constructor
-	 * @param level TODO
-	 * 
-	 */
-	public DomainAuditRecord(long id, 
-					   ExecutionStatus status, 
-					   AuditLevel level, 
-					   String key, 
-					   LocalDateTime startTime,
-					   String dataExtractionMsg, 
-					   double dataExtractionProgress,
-					   LocalDateTime created_at, 
-					   LocalDateTime endTime
-	) {
-		super(id, status, level, key, startTime, created_at, endTime);
-		setDataExtractionMsg(dataExtractionMsg);
-		setDataExtractionProgress(dataExtractionProgress);
-		setColors(new ArrayList<String>());
-	}
-
-	
 	public String generateKey() {
 		return "domainauditrecord:"+UUID.randomUUID().toString()+org.apache.commons.codec.digest.DigestUtils.sha256Hex(System.currentTimeMillis() + "");
 	}
 
 	public Set<PageAuditRecord> getAudits() {
-		return page_audit_records;
+		return pageAuditRecords;
 	}
 
 	public void setAudits(Set<PageAuditRecord> audits) {
-		this.page_audit_records = audits;
+		this.pageAuditRecords = audits;
 	}
 
 	public void addAudit(PageAuditRecord audit) {
-		this.page_audit_records.add( audit );
+		this.pageAuditRecords.add( audit );
 	}
 	
 	public void addAudits(Set<PageAuditRecord> audits) {
-		this.page_audit_records.addAll( audits );
+		this.pageAuditRecords.addAll( audits );
 	}
 
 	public int getTotalPages() {
@@ -111,21 +94,5 @@ public class DomainAuditRecord extends AuditRecord {
 	public void setJourneyStatusMap(Map<String, JourneyStatus> journey_status_map) {
 		this.journey_status_map = journey_status_map;
 	}
-	
 
-	public double getDataExtractionProgress() {
-		return dataExtractionProgress;
-	}
-
-	public void setDataExtractionProgress(double data_extraction_progress) {
-		this.dataExtractionProgress = data_extraction_progress;
-	}
-
-	public String getDataExtractionMsg() {
-		return dataExtractionMsg;
-	}
-
-	public void setDataExtractionMsg(String data_extraction_msg) {
-		this.dataExtractionMsg = data_extraction_msg;
-	}
 }
