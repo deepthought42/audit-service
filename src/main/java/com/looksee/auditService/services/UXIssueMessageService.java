@@ -7,11 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.auditService.models.repository.ColorContrastIssueMessageRepository;
-import com.looksee.auditService.models.repository.UXIssueMessageRepository;
 import com.looksee.auditService.models.ColorContrastIssueMessage;
 import com.looksee.auditService.models.ElementState;
 import com.looksee.auditService.models.UXIssueMessage;
+import com.looksee.auditService.models.repository.ColorContrastIssueMessageRepository;
+import com.looksee.auditService.models.repository.ElementStateRepository;
+import com.looksee.auditService.models.repository.UXIssueMessageRepository;
 
 @Service
 public class UXIssueMessageService {
@@ -23,6 +24,9 @@ public class UXIssueMessageService {
 	
 	@Autowired
 	private ColorContrastIssueMessageRepository contrast_issue_message_repo;
+	
+	@Autowired
+	private ElementStateRepository element_state_repo;
 	
 	public UXIssueMessage save(UXIssueMessage ux_issue) {
 		return issue_message_repo.save(ux_issue);
@@ -95,7 +99,7 @@ public class UXIssueMessageService {
 	}
 
 	public ElementState getElement(long id) {
-		return issue_message_repo.getElement(id);
+		return element_state_repo.getElement(id);
 	}
 
 	public Iterable<UXIssueMessage> saveAll(List<UXIssueMessage> issue_messages) {
@@ -104,7 +108,7 @@ public class UXIssueMessageService {
 	}
 
 	public ElementState getGoodExample(long issue_id) {
-		return issue_message_repo.getGoodExample(issue_id);
+		return element_state_repo.getGoodExample(issue_id);
 	}
 
 	public void addElement(long issue_id, long element_id) {

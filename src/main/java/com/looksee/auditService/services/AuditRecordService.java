@@ -10,15 +10,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.auditService.models.repository.AuditRecordRepository;
+import com.looksee.auditService.MessageBroadcaster;
+import com.looksee.auditService.models.Account;
 import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.DesignSystem;
+import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.Label;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.UXIssueMessage;
+import com.looksee.auditService.models.dto.DomainDto;
+import com.looksee.auditService.models.enums.AuditCategory;
+import com.looksee.auditService.models.enums.ExecutionStatus;
+import com.looksee.auditService.models.repository.AccountRepository;
+import com.looksee.auditService.models.repository.AuditRecordRepository;
+import com.looksee.auditService.models.repository.AuditRepository;
+import com.looksee.auditService.models.repository.DesignSystemRepository;
+import com.looksee.auditService.models.repository.DomainRepository;
+import com.looksee.auditService.models.repository.LabelRepository;
+import com.looksee.auditService.models.repository.PageStateRepository;
+import com.looksee.auditService.models.repository.UXIssueMessageRepository;
 
 /**
  * Contains business logic for interacting with and managing audits
@@ -28,14 +41,41 @@ import com.looksee.auditService.models.UXIssueMessage;
 public class AuditRecordService {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(AuditRecordService.class);
+
+	@Autowired
+	private AccountService account_service;
+	
+	@Autowired
+	private DomainRepository domain_repo;
 	
 	@Autowired
 	private AuditRecordRepository audit_record_repo;
 	
+	@Autowired
+	private DomainDtoService domain_dto_service;
 	
 	@Autowired
 	private PageStateService page_state_service;
 	
+	@Autowired
+	private AuditRepository audit_repo;
+	
+	@Autowired
+	private PageStateRepository page_state_repo;
+	
+	@Autowired
+	private AccountRepository account_repo;
+	
+	@Autowired
+	private DesignSystemRepository design_system_repo;
+	
+	@Autowired 
+	private LabelRepository label_repo;
+	
+	@Autowired
+	private UXIssueMessageRepository ux_issue_repo;
+	
+	@Deprecated
 	public AuditRecord save(AuditRecord audit) {
 		assert audit != null;
 
@@ -58,9 +98,9 @@ public class AuditRecordService {
 				Account account = account_service.findById(account_id).get();
 				int id_start_idx = account.getUserId().indexOf('|');
 				String user_id = account.getUserId().substring(id_start_idx+1);
-				Domain domain = domain_service.findById(domain_id).get();
+				Domain domain = domain_repo.findById(domain_id).get();
 				DomainDto domain_dto = domain_dto_service.build(domain);
-				MessageBroadcaster.sendAuditRecord(user_id, domain_dto);
+				MessageBroadcaster.sendAuditUpdate(user_id, domain_dto);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -86,7 +126,7 @@ public class AuditRecordService {
 	
 	public void addAudit(String audit_record_key, String audit_key) {
 		//check if audit already exists for page state
-		Optional<Audit> audit = audit_record_repo.getAuditForAuditRecord(audit_record_key, audit_key);
+		Optional<Audit> audit = audit_repo.getAuditForAuditRecord(audit_record_key, audit_key);
 		if(!audit.isPresent()) {
 			audit_record_repo.addAudit(audit_record_key, audit_key);
 		}
@@ -100,10 +140,10 @@ public class AuditRecordService {
 	}
 	
 	public Set<Audit> getAllAuditsAndIssues(long audit_id) {		
-		return audit_record_repo.getAllAuditsForPageAuditRecord(audit_id);
+		return audit_repo.getAllAuditsForPageAuditRecord(audit_id);
 	}
 	
-	public Optional<DomainAuditRecord> findMostRecentDomainAuditRecord(long id) {
+	public Optional<AuditRecord> findMostRecentDomainAuditRecord(long id) {
 		return audit_record_repo.findMostRecentDomainAuditRecord(id);
 	}
 	
@@ -120,7 +160,7 @@ public class AuditRecordService {
 		
 		//get most recent page state
 		PageState page_state = page_state_service.findByUrl(page_url);
-		return audit_record_repo.getMostRecentAuditsForPage(page_state.getKey());
+		return audit_repo.getMostRecentAuditsForPage(page_state.getKey());
 		//return audit_record_repo.findMostRecentDomainAuditRecord(page_url);
 	}
 
@@ -128,28 +168,28 @@ public class AuditRecordService {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageColorPaletteAudits(audit_record_key);
+		return audit_repo.getAllPageColorPaletteAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllTextColorContrastAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageTextColorContrastAudits(audit_record_key);
+		return audit_repo.getAllPageTextColorContrastAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllNonTextColorContrastAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageNonTextColorContrastAudits(audit_record_key);
+		return audit_repo.getAllPageNonTextColorContrastAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllTypefaceAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageTypefaceAudits(audit_record_key);
+		return audit_repo.getAllPageTypefaceAudits(audit_record_key);
 	}
 
 	
@@ -157,21 +197,21 @@ public class AuditRecordService {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageLinkAudits(audit_record_key);
+		return audit_repo.getAllPageLinkAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllTitleAndHeaderAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageTitleAndHeaderAudits(audit_record_key);
+		return audit_repo.getAllPageTitleAndHeaderAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllAltTextAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageAltTextAudits(audit_record_key);
+		return audit_repo.getAllPageAltTextAudits(audit_record_key);
 	}
 
 
@@ -179,29 +219,29 @@ public class AuditRecordService {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageMarginAudits(audit_record_key);
+		return audit_repo.getAllPageMarginAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllPagePaddingAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPagePaddingAudits(audit_record_key);
+		return audit_repo.getAllPagePaddingAudits(audit_record_key);
 	}
 
 	public Set<Audit> getAllPageParagraphingAudits(String audit_record_key) {
 		assert audit_record_key != null;
 		assert !audit_record_key.isEmpty();
 		
-		return audit_record_repo.getAllPageParagraphingAudits(audit_record_key);
+		return audit_repo.getAllPageParagraphingAudits(audit_record_key);
 	}
 
-	public Set<PageAuditRecord> getAllPageAudits(long domain_audit_id) {		
-		return audit_record_repo.getAllPageAudits(domain_audit_id);
+	public Set<AuditRecord> getAllPageAudits(long audit_record_id) {		
+		return audit_record_repo.getAllPageAudits(audit_record_id);
 	}
 	
 	public Set<Audit> getAllAuditsForPageAuditRecord(long page_audit_id) {		
-		return audit_record_repo.getAllAuditsForPageAuditRecord( page_audit_id);
+		return audit_repo.getAllAuditsForPageAuditRecord( page_audit_id);
 	}
 
 	public void addPageAuditToDomainAudit(long domain_audit_record_id, String page_audit_record_key) {
@@ -230,47 +270,47 @@ public class AuditRecordService {
 	}
 
 	public Set<Audit> getAllContentAuditsForDomainRecord(long id) {
-		return audit_record_repo.getAllContentAuditsForDomainRecord(id);
+		return audit_repo.getAllContentAuditsForDomainRecord(id);
 	}
 
 	public Set<Audit> getAllInformationArchitectureAuditsForDomainRecord(long id) {
-		return audit_record_repo.getAllInformationArchitectureAuditsForDomainRecord(id);
+		return audit_repo.getAllInformationArchitectureAuditsForDomainRecord(id);
 	}
 
 	public Set<Audit> getAllAccessibilityAuditsForDomainRecord(long id) {
-		return audit_record_repo.getAllAccessibilityAuditsForDomainRecord(id);
+		return audit_repo.getAllAccessibilityAuditsForDomainRecord(id);
 	}
 
 	public Set<Audit> getAllAestheticAuditsForDomainRecord(long id) {
-		return audit_record_repo.getAllAestheticsAuditsForDomainRecord(id);
+		return audit_repo.getAllAestheticsAuditsForDomainRecord(id);
 	}
 
 	public Set<Audit> getAllContentAudits(long audit_record_id) {
-		return audit_record_repo.getAllContentAudits(audit_record_id);
+		return audit_repo.getAllContentAudits(audit_record_id);
 	}
 
 	public Set<Audit> getAllInformationArchitectureAudits(long id) {
-		return audit_record_repo.getAllInformationArchitectureAudits(id);
+		return audit_repo.getAllInformationArchitectureAudits(id);
 	}
 
 	public Set<Audit> getAllAccessibilityAudits(Long id) {
-		return audit_record_repo.getAllAccessibilityAudits(id);
+		return audit_repo.getAllAccessibilityAudits(id);
 	}
 
 	public Set<Audit> getAllAestheticAudits(long id) {
-		return audit_record_repo.getAllAestheticsAudits(id);
+		return audit_repo.getAllAestheticsAudits(id);
 	}
 
 	public PageState getPageStateForAuditRecord(long page_audit_id) {
-		return page_state_service.getPageStateForAuditRecord(page_audit_id);
+		return audit_record_repo.getPageStateForAuditRecord(page_audit_id);
 	}
 
 	public Set<UXIssueMessage> getIssues(long audit_record_id) {
-		return audit_record_repo.getIssues(audit_record_id);
+		return ux_issue_repo.getIssues(audit_record_id);
 	}
 
 	public Set<PageState> getPageStatesForDomainAuditRecord(long audit_record_id) {
-		return audit_record_repo.getPageStatesForDomainAuditRecord(audit_record_id);
+		return page_state_repo.getPageStatesForDomainAuditRecord(audit_record_id);
 	}
 
 	public void addPageToAuditRecord(long audit_record_id, long page_state_id) {
@@ -286,17 +326,19 @@ public class AuditRecordService {
 	}
 
 	public Set<Audit> getAllAudits(long id) {
-		return audit_record_repo.getAllAudits(id);
+		return audit_repo.getAllAudits(id);
 	}
 
 	public boolean isDomainAuditComplete(AuditRecord audit_record) {		
 		//audit_record should now have a domain audit record
 		//get all page audit records for domain audit
 
-		Set<PageAuditRecord> page_audits = audit_record_repo.getAllPageAudits(audit_record.getId());
-		
+		Set<AuditRecord> page_audits = audit_record_repo.getAllPageAudits(audit_record.getId());
+		if(audit_record.getDataExtractionProgress() < 1.0) {
+			return false;
+		}
 		//check all page audit records. If all are complete then the domain is also complete
-		for(PageAuditRecord audit : page_audits) {
+		for(AuditRecord audit : page_audits) {
 			if(!audit.isComplete()) {
 				return false;
 			}
@@ -309,16 +351,57 @@ public class AuditRecordService {
 		return audit_record_repo.getDomainForPageAuditRecord(id);
 	}
 
+	public Optional<Account> getAccount(long audit_record_id) {
+		return account_repo.getAccount(audit_record_id);
+	}
+
 	public Set<Label> getLabelsForImageElements(long id) {
-		return audit_record_repo.getLabelsForImageElements(id);
+		return label_repo.getLabelsForImageElements(id);
 	}
 
 	public Optional<DesignSystem> getDesignSystem(long audit_record_id) {
-		return audit_record_repo.getDesignSystem(audit_record_id);
+		return design_system_repo.getDesignSystem(audit_record_id);
 	}
 	
 	public AuditRecord addJourney(long audit_record_id, long journey_id) {
 		return audit_record_repo.addJourney(audit_record_id, journey_id);
+	}
+
+	/**
+	 * Update the progress for the appropriate {@linkplain AuditCategory}
+	 * @param auditRecordId
+	 * @param category
+	 * @param account_id
+	 * @param domain_id
+	 * @param progress
+	 * @param message
+	 * @return
+	 */
+	public AuditRecord updateAuditProgress(long auditRecordId, 
+										   AuditCategory category, 
+										   long account_id, 
+										   long domain_id, 
+										   double progress, 
+										   String message) 
+	{
+		AuditRecord audit_record = findById(auditRecordId).get();
+		audit_record.setDataExtractionProgress(1.0);
+		audit_record.setStatus(ExecutionStatus.RUNNING_AUDITS);
+
+		if(AuditCategory.CONTENT.equals(category)) {
+			audit_record.setContentAuditProgress( progress );
+			audit_record.setContentAuditMsg( message);
+		}
+		else if(AuditCategory.AESTHETICS.equals(category)) {
+			audit_record.setAestheticAuditProgress( progress);
+			audit_record.setAestheticMsg(message);
+		}
+		else if(AuditCategory.INFORMATION_ARCHITECTURE.equals(category)) {
+			audit_record.setInfoArchitectureAuditProgress( progress );
+			audit_record.setInfoArchMsg(message);
+		}
+		
+		return save(audit_record, account_id, domain_id);
 	}
 
 	/**
@@ -328,16 +411,23 @@ public class AuditRecordService {
 	 * @return
 	 */
 	public PageState findPageWithUrl(long audit_record_id, String url) {
-		return audit_record_repo.findPageWithUrl(audit_record_id, url);
+		return page_state_repo.findPageWithUrl(audit_record_id, url);
 	}
 	
-	/**
-	 * Retrieves {@link PageState} with given URL for {@link DomainAuditRecord}  
-	 * @param audit_record_id
-	 * @param current_url
-	 * @return
-	 */
-	public AuditRecord findPageWithId(long audit_record_id, long page_id) {
-		return audit_record_repo.findPageWithId(audit_record_id, page_id);
+
+	@Deprecated
+	public Optional<AuditRecord> getMostRecentAuditRecordForDomain(String host) {
+		assert host != null;
+		assert !host.isEmpty();
+		
+		return audit_record_repo.getMostRecentAuditRecordForDomain(host);
+	}
+	
+	public Optional<AuditRecord> getMostRecentAuditRecordForDomain(long id) {
+		return audit_record_repo.getMostRecentAuditRecordForDomain(id);
+	}
+
+	public Set<Audit> getAllAuditsForDomainAudit(long domain_audit_record_id) {
+		return audit_repo.getAllAuditsForDomainAudit(domain_audit_record_id);
 	}
 }

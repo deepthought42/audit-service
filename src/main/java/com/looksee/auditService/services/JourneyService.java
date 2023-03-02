@@ -22,6 +22,9 @@ public class JourneyService {
 		if(journey_record != null) {
 			return journey_record;
 		}
+		journey_record = journey_repo.save(journey);
+		return journey_record;
+		/*
 		journey_record = new Journey();
 
 		journey_record.setOrderedIds(journey.getOrderedIds());
@@ -34,6 +37,7 @@ public class JourneyService {
 		
 		journey_record.setSteps(journey.getSteps());
 		return journey_record;	
+		*/
 	}
 	
 }

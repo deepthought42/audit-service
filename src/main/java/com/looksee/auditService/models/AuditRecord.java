@@ -3,6 +3,7 @@ package com.looksee.auditService.models;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.neo4j.core.schema.Node;
@@ -39,7 +40,7 @@ public class AuditRecord extends LookseeObject {
 	private String targetUserAge;
 	private String targetUserEducation;
 	
-	private List<AuditName> auditLabels;
+	private Set<AuditName> auditLabels;
 
 
 	//DESIGN SYSTEM VALUES
@@ -227,11 +228,11 @@ public class AuditRecord extends LookseeObject {
 		this.statusMessage = status_message;
 	}
 
-	public List<AuditName> getAuditLabels() {
+	public Set<AuditName> getAuditLabels() {
 		return auditLabels;
 	}
 
-	public void setAuditLabels(List<AuditName> auditLabels) {
+	public void setAuditLabels(Set<AuditName> auditLabels) {
 		this.auditLabels = auditLabels;
 	}
 	

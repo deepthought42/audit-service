@@ -10,16 +10,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.auditService.models.enums.AuditName;
-import com.looksee.auditService.models.repository.ElementStateRepository;
-import com.looksee.auditService.models.repository.PageStateRepository;
-import com.looksee.auditService.models.enums.ElementClassification;
 import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.ElementState;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.Screenshot;
-
+import com.looksee.auditService.models.enums.AuditName;
+import com.looksee.auditService.models.enums.ElementClassification;
+import com.looksee.auditService.models.repository.AuditRecordRepository;
+import com.looksee.auditService.models.repository.AuditRepository;
+import com.looksee.auditService.models.repository.ElementStateRepository;
+import com.looksee.auditService.models.repository.PageStateRepository;
+import com.looksee.auditService.models.repository.ScreenshotRepository;
 
 
 /**
@@ -33,10 +35,19 @@ public class PageStateService {
 	
 	@Autowired
 	private PageStateRepository page_state_repo;
-	
+
 	@Autowired
 	private ElementStateRepository element_state_repo;
-
+	
+	@Autowired
+	private ScreenshotRepository screenshot_repo;
+	
+	@Autowired
+	private AuditRepository audit_repo;
+	
+	@Autowired
+	private AuditRecordRepository audit_record_repo;
+	
 	/**
 	 * Save a {@link PageState} object and its associated objects
 	 * @param page_state
@@ -95,7 +106,7 @@ public class PageStateService {
 	}
 	
 	public List<Screenshot> getScreenshots(String user_id, String page_key){
-		List<Screenshot> screenshots = page_state_repo.getScreenshots(user_id, page_key);
+		List<Screenshot> screenshots = screenshot_repo.getScreenshots(user_id, page_key);
 		if(screenshots == null){
 			return new ArrayList<Screenshot>();
 		}
@@ -124,15 +135,15 @@ public class PageStateService {
 		assert page_state_key != null;
 		assert !page_state_key.isEmpty();
 		
-		return page_state_repo.getAudits(page_state_key);
+		return audit_repo.getAudits(page_state_key);
 	}
 
 	public Audit findAuditBySubCategory(AuditName subcategory, String page_state_key) {
-		return page_state_repo.findAuditBySubCategory(subcategory.getShortName(), page_state_key);
+		return audit_repo.findAuditBySubCategory(subcategory.getShortName(), page_state_key);
 	}
 
 	public List<ElementState> getVisibleLeafElements(String page_state_key) {
-		return page_state_repo.getVisibleLeafElements(page_state_key);
+		return element_state_repo.getVisibleLeafElements(page_state_key);
 	}
 
 	public PageState findByUrl(String url) {
@@ -148,11 +159,11 @@ public class PageStateService {
 		if(element_state.isPresent()) {
 			return true;
 		}
-		return page_state_repo.addElement(page_id, element_id) != null;
+		return element_state_repo.addElement(page_id, element_id) != null;
 	}
 
 	private Optional<ElementState> getElementState(long page_id, long element_id) {
-		return page_state_repo.getElementState(page_id, element_id);
+		return element_state_repo.getElementState(page_id, element_id);
 	}
 
 	/**
@@ -162,7 +173,7 @@ public class PageStateService {
 	 */
 	public PageAuditRecord getAuditRecord(long id) {
 		
-		return page_state_repo.getAuditRecord(id);
+		return audit_record_repo.getAuditRecord(id);
 	}
 
 	public Optional<PageState> findById(long page_id) {
@@ -175,13 +186,5 @@ public class PageStateService {
 
 	public void addAllElements(long page_state_id, List<Long> element_ids) {
 		page_state_repo.addAllElements(page_state_id, element_ids);
-	}
-
-	public PageState findByDomainAudit(long domainAuditRecordId, long page_state_id) {
-		return page_state_repo.findByDomainAudit(domainAuditRecordId, page_state_id);
-	}
-
-	public PageState getPageStateForAuditRecord(long page_audit_id) {
-		return page_state_repo.getPageStateForAuditRecord(page_audit_id);
 	}
 }

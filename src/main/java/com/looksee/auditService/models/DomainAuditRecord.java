@@ -43,7 +43,7 @@ public class DomainAuditRecord extends AuditRecord {
 	 * @pre audit_stats != null;
 	 */
 	public DomainAuditRecord(ExecutionStatus status, 
-							List<AuditName> audit_list) {
+							Set<AuditName> audit_list) {
 		super();
 		assert status != null;
 		

@@ -1,5 +1,6 @@
 package com.looksee.auditService.models.repository;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.looksee.auditService.models.Account;
 import com.looksee.auditService.models.AuditRecord;
+import com.looksee.auditService.models.DiscoveryRecord;
 import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.PageAuditRecord;
 
@@ -22,7 +24,18 @@ public interface AccountRepository extends Neo4jRepository<Account, Long> {
 
 	@Query("MATCH (account:Account{user_id:$user_id}) RETURN account")
 	public Account findByUserId(@Param("user_id") String user_id);
-		
+	
+	/** 
+	 * NOTE:: relic from old days. Remove at first chance
+	 * @param username
+	 * @param month
+	 * @return
+	 */
+	@Query("MATCH (account:Account {username:$user_id})-[]->(d:DiscoveryRecord) WHERE datetime(d.started_at).month=$month return d")
+	@Deprecated
+	public Set<DiscoveryRecord> getDiscoveryRecordsByMonth(@Param("username") String username, 
+														  @Param("month") int month);
+	
 	@Query("MATCH (account:Account)-[hd:HAS]->(domain:Domain) WHERE id(account)=$account_id AND id(domain)=$domain_id DELETE hd")
 	public void removeDomain(@Param("account_id") long account_id, @Param("domain_id") long domain_id);
 
@@ -54,9 +67,6 @@ public interface AccountRepository extends Neo4jRepository<Account, Long> {
 	@Query("MATCH (account:Account)-[]->(audit_record:PageAuditRecord) WHERE id(account)=$account_id RETURN audit_record ORDER BY audit_record.created_at DESC LIMIT 5")
 	public Set<PageAuditRecord> findMostRecentAuditsByAccount(long account_id);
 
-	@Query("MATCH (account:Account)-[:HAS]->(domain:Domain) WHERE id(account)=$account_id RETURN domain")
-	Set<Domain> getDomainsForAccount(@Param("account_id") long account_id);
-
 	@Query("MATCH (account:Account)-[]->(page_audit:PageAuditRecord) WHERE id(account)=$account_id AND datetime(page_audit.created_at).month=$month RETURN COUNT(page_audit)")
 	int getPageAuditCountByMonth(@Param("account_id") long account_id, @Param("month") int month);
 
@@ -65,4 +75,9 @@ public interface AccountRepository extends Neo4jRepository<Account, Long> {
 	
 	@Query("MATCH (account:Account)-[:HAS]->(domain:Domain) MATCH (domain)<-[:HAS]-(audit_record:DomainAuditRecord) WHERE id(account)=$account_id AND datetime(audit_record.created_at).month=$month RETURN COUNT(audit_record)")
 	public int geDomainAuditRecordCountByMonth(@Param("account_id") long account_id, @Param("month") int month);
+	
+	@Query("MATCH (account:Account)-[*]->(audit_record:AuditRecord) WHERE id(audit_record)=$audit_record_id RETURN account LIMIT 1")
+	public Optional<Account> getAccount(@Param("audit_record_id") long audit_record_id);
+
+	
 }

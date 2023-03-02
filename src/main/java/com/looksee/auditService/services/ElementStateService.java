@@ -10,12 +10,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.auditService.models.repository.ElementStateRepository;
-import com.looksee.models.rules.Rule;
 import com.looksee.api.exception.ExistingRuleException;
 import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.Element;
 import com.looksee.auditService.models.ElementState;
+import com.looksee.auditService.models.repository.ElementStateRepository;
+import com.looksee.auditService.models.repository.RuleRepository;
+import com.looksee.models.rules.Rule;
 
 @Service
 public class ElementStateService {
@@ -28,17 +29,30 @@ public class ElementStateService {
 	@Autowired
 	private PageStateService page_state_service;
 	
+	@Autowired
+	private RuleRepository rule_repo;
+	
 	/**
-	 * saves element state to database
+	 * 
 	 * @param element
-	 * @return saved record of element state
+	 * @return
 	 * 
 	 * @pre element != null
 	 */
 	public ElementState save(ElementState element) {
 		assert element != null;
-
+		//ElementState element_record = element_repo.findByKey(element.getKey());
+		//if(element_record == null){
+			//iterate over attributes
 		return element_repo.save(element);
+		/*}
+		else {
+			element_record.setBackgroundColor(element.getBackgroundColor());
+			element_record.setForegroundColor(element.getForegroundColor());
+			element_repo.save(element_record);
+		}
+		return element_record;
+		 */
 	}
 	
 	/**
@@ -73,6 +87,7 @@ public class ElementStateService {
 		element_repo.removeRule(user_id, element_key, rule_key);
 	}
 	
+	@Deprecated
 	public boolean doesElementExistInOtherPageStateWithLowerScrollOffset(Element element){
 		return false;
 	}
@@ -82,15 +97,15 @@ public class ElementStateService {
 	}
 
 	public Set<Rule> getRules(String user_id, String element_key) {
-		return element_repo.getRules(user_id, element_key);
+		return rule_repo.getRules(user_id, element_key);
 	}
 
 	public Set<Rule> addRuleToFormElement(String username, String element_key, Rule rule) {
 		//Check that rule doesn't already exist
-		Rule rule_record = element_repo.getElementRule(username, element_key, rule.getKey());
+		Rule rule_record = rule_repo.getElementRule(username, element_key, rule.getKey());
 		if(rule_record == null) {
-			rule_record = element_repo.addRuleToFormElement(username, element_key, rule.getKey());
-			return element_repo.getRules(username, element_key);
+			rule_record = rule_repo.addRuleToFormElement(username, element_key, rule.getKey());
+			return rule_repo.getRules(username, element_key);
 		}
 		else {
 			throw new ExistingRuleException(rule.getType().toString());
@@ -180,8 +195,11 @@ public class ElementStateService {
 
 	public List<ElementState> saveAll(List<ElementState> element_states, long page_state_id) {
 		return element_states.parallelStream()
+									   //.filter(f -> !existing_keys.contains(f.getKey()))
 									   .map(element -> save(element))
 									   .collect(Collectors.toList());
+
+		//return element_repo.saveAll(element_states);
 	}
 
 	/**
@@ -197,24 +215,4 @@ public class ElementStateService {
 	public List<ElementState> getElements(Set<String> existing_keys) {
 		return element_repo.getElements(existing_keys);
 	}
-	
-	public List<ElementState> getVisibleLeafElements(long page_state_id) {
-		return element_repo.getVisibleLeafElements(page_state_id);
-	}
-	
-	/**
-	 * Retrieves keys for all existing element states that are connected the the page with the given page state id
-	 * 
-	 * NOTE: This is best for a database with significant memory as the size of data can be difficult to process all at once
-	 * on smaller machines
-	 * 
-	 * @param page_state_id
-	 * @param element_states
-	 * @return {@link List} of {@link ElementState} ids 
-	 */
-	public List<ElementState> saveElements(List<ElementState> element_states) {		
-		return element_states.parallelStream()
-									   .map(element -> save(element))
-									   .collect(Collectors.toList());
-	}	
 }
