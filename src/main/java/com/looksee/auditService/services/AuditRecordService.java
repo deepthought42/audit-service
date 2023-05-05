@@ -10,25 +10,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.auditService.MessageBroadcaster;
 import com.looksee.auditService.models.Account;
 import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.DesignSystem;
-import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.Label;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.UXIssueMessage;
-import com.looksee.auditService.models.dto.DomainDto;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ExecutionStatus;
 import com.looksee.auditService.models.repository.AccountRepository;
 import com.looksee.auditService.models.repository.AuditRecordRepository;
 import com.looksee.auditService.models.repository.AuditRepository;
 import com.looksee.auditService.models.repository.DesignSystemRepository;
-import com.looksee.auditService.models.repository.DomainRepository;
 import com.looksee.auditService.models.repository.LabelRepository;
 import com.looksee.auditService.models.repository.PageStateRepository;
 import com.looksee.auditService.models.repository.UXIssueMessageRepository;
@@ -43,16 +39,7 @@ public class AuditRecordService {
 	private static Logger log = LoggerFactory.getLogger(AuditRecordService.class);
 
 	@Autowired
-	private AccountService account_service;
-	
-	@Autowired
-	private DomainRepository domain_repo;
-	
-	@Autowired
 	private AuditRecordRepository audit_record_repo;
-	
-	@Autowired
-	private DomainDtoService domain_dto_service;
 	
 	@Autowired
 	private PageStateService page_state_service;
@@ -261,14 +248,6 @@ public class AuditRecordService {
 		return audit_record_repo.getMostRecentPageAuditRecord(url);
 	}
 
-	@Deprecated
-	public PageState getPageStateForAuditRecord(String page_audit_key) {
-		assert page_audit_key != null;
-		assert !page_audit_key.isEmpty();
-		
-		return audit_record_repo.getPageStateForAuditRecord(page_audit_key);
-	}
-
 	public Set<Audit> getAllContentAuditsForDomainRecord(long id) {
 		return audit_repo.getAllContentAuditsForDomainRecord(id);
 	}
@@ -299,10 +278,6 @@ public class AuditRecordService {
 
 	public Set<Audit> getAllAestheticAudits(long id) {
 		return audit_repo.getAllAestheticsAudits(id);
-	}
-
-	public PageState getPageStateForAuditRecord(long page_audit_id) {
-		return audit_record_repo.getPageStateForAuditRecord(page_audit_id);
 	}
 
 	public Set<UXIssueMessage> getIssues(long audit_record_id) {
