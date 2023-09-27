@@ -14,12 +14,10 @@ public class AuditMessage extends Message {
 	
 	public AuditMessage( Audit audit,
 						 double audit_progress,
-						 long domain_id, 
 						 long account_id, 
-						 long domain_audit_record_id,
 						 long page_audit_record_id)
 	{
-		super(account_id, domain_audit_record_id, domain_id);
+		super(account_id);
 		setAudit(audit);
 		setAuditProgress(audit_progress);
 		setPageAuditRecordId(page_audit_record_id);
@@ -28,9 +26,7 @@ public class AuditMessage extends Message {
 	public AuditMessage clone(){
 		return new AuditMessage(  audit.clone(),
 								  getAuditProgress(),
-								  getDomainId(),
-								  getAccountId(), 
-								  getDomainAuditRecordId(),
+								  getAccountId(),
 								  getPageAuditRecordId());
 	}
 

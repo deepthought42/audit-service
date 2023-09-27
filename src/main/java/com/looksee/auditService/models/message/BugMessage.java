@@ -2,13 +2,14 @@ package com.looksee.auditService.models.message;
 
 import java.util.Date;
 
-import com.looksee.auditService.models.LookseeObject;
 import com.looksee.auditService.models.enums.BugType;
+import com.looksee.auditService.models.LookseeObject;
+
 
 /**
  * 
  */
-public class BugMessage extends LookseeObject {
+public class BugMessage extends LookseeObject{
 	private String message;
 	private String bug_type;
 	private Date date_identified;

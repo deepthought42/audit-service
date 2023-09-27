@@ -6,16 +6,16 @@ import com.looksee.auditService.models.enums.AuditLevel;
 /**
  * Intended to contain information about progress an audit
  */
-public class AuditProgressUpdate extends Message {
+public class PageAuditProgressMessage extends Message {
 	private long pageAuditId;
 	private AuditCategory category;
 	private AuditLevel level;
 	private double progress;
 	private String message;
 	
-	public AuditProgressUpdate() {	}
+	public PageAuditProgressMessage() {	}
 	
-	public AuditProgressUpdate(
+	public PageAuditProgressMessage(
 			long account_id,
 			long audit_record_id,
 			double progress,

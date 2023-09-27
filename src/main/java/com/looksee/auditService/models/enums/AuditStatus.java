@@ -3,17 +3,16 @@ package com.looksee.auditService.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
- * Defines all {@link AuditStage stages} of {@link Audit audits} that exist in the system
+ * Defines all {@link AuditStatus status} of {@link Audit audits} that exist in the system
  */
-@Deprecated
-public enum AuditStage {
-	PRERENDER("prerender"),
-	RENDERED("rendered"),
-	UNKNOWN("unknown");
+public enum AuditStatus {
+	STARTED("STARTED"),
+	STOPPED("STOPPED"),
+	COMPLETE("COMPLETE");
 	
 	private String shortName;
 
-    AuditStage (String shortName) {
+    AuditStatus (String shortName) {
         this.shortName = shortName;
     }
 
@@ -23,12 +22,8 @@ public enum AuditStage {
     }
 
     @JsonCreator
-    public static AuditStage create (String value) {
-        if(value == null) {
-            return UNKNOWN;
-        }
-        
-        for(AuditStage v : values()) {
+    public static AuditStatus create (String value) {
+        for(AuditStatus v : values()) {
             if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }

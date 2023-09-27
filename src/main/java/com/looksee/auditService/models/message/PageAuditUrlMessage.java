@@ -5,22 +5,19 @@ package com.looksee.auditService.models.message;
  * Message for different audit actions to perform and which audit types to perform them for.
  * 
  */
-public class UrlMessage extends Message {
+public class PageAuditUrlMessage extends PageAuditMessage {
 	
 	private long pageAuditId;
 	private String url;
 	
-	public UrlMessage() {}
+	public PageAuditUrlMessage() {}
 	
-	public UrlMessage( long domain_id, 
-				  	   long account_id,
-				  	   long domain_audit_id,
-				  	   long page_audit_id, 
+	public PageAuditUrlMessage( long account_id,
+				  	   long page_audit_id,
 				  	   String url)
 	{
-		super(account_id, domain_id, domain_audit_id);
+		super(account_id, page_audit_id);
 		setUrl(url);
-		setPageAuditId(page_audit_id);
 	}
 
 	public long getPageAuditId() {
