@@ -2,8 +2,6 @@ package com.looksee.auditService.models;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,7 +11,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import com.looksee.auditService.models.enums.AuditLevel;
 import com.looksee.auditService.models.enums.AuditName;
 import com.looksee.auditService.models.enums.ExecutionStatus;
-import com.looksee.auditService.models.enums.JourneyStatus;
 
 /**
  * Record detailing an set of {@link Audit audits}.
@@ -24,14 +21,12 @@ public class DomainAuditRecord extends AuditRecord {
 	@Relationship(type = "HAS")
 	private Set<PageAuditRecord> pageAuditRecords;
 	
-	
 	private int total_pages;
-	private Map<String, JourneyStatus> journey_status_map;
 	
 
 	public DomainAuditRecord() {
 		super();
-		setAudits(new HashSet<>()); 
+		setAudits(new HashSet<>());
 	}
 	
 	/**
@@ -86,13 +81,4 @@ public class DomainAuditRecord extends AuditRecord {
 	public void setTotalPages(int total_pages) {
 		this.total_pages = total_pages;
 	}
-
-	public Map<String, JourneyStatus> getJourneyStatusMap() {
-		return journey_status_map;
-	}
-
-	public void setJourneyStatusMap(Map<String, JourneyStatus> journey_status_map) {
-		this.journey_status_map = journey_status_map;
-	}
-
 }

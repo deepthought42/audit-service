@@ -1,9 +1,6 @@
 package com.looksee.auditService.models;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -12,6 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Node;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.looksee.auditService.models.enums.ElementClassification;
 
 
@@ -20,6 +20,13 @@ import com.looksee.auditService.models.enums.ElementClassification;
  *  may be a Parent and/or child of another ElementState. This heirarchy is not
  *  maintained by ElementState though. 
  */
+@JsonTypeInfo(
+	  use = JsonTypeInfo.Id.NAME, 
+	  include = JsonTypeInfo.As.PROPERTY, 
+	  property = "type")
+@JsonSubTypes({ 
+  @Type(value = ImageElementState.class, name = "ImageElementState"), 
+})
 @Node
 public class ElementState extends LookseeObject implements Comparable<ElementState> {
 	@SuppressWarnings("unused")
@@ -197,13 +204,15 @@ public class ElementState extends LookseeObject implements Comparable<ElementSta
 	}
 
 	/**
-	 * Generates a key using both path and result in order to guarantee uniqueness of key as well 
-	 * as easy identity of {@link Test} when generated in the wild via discovery
+	 * Generates a key using the outer html. Keys are not unique across entire dataset. Instead, ElementState keys 
+	 * are only unique per domain.
 	 * 
 	 * @return
 	 */
 	public String generateKey() {
-		
+		return "elementstate"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(getOuterHtml());
+
+		/*
 		String key = "";
 		List<String> properties = new ArrayList<>(getRenderedCssValues().keySet());
 		Collections.sort(properties);
@@ -212,6 +221,7 @@ public class ElementState extends LookseeObject implements Comparable<ElementSta
 		}
 		
 		return "elementstate"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(key)+org.apache.commons.codec.digest.DigestUtils.sha256Hex(getOuterHtml());
+		*/
 	}
 
 	/**

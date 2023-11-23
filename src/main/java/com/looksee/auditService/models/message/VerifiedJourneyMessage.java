@@ -21,10 +21,10 @@ public class VerifiedJourneyMessage extends DomainAuditMessage {
 								   long account_id,
 								   long audit_record_id)
 	{
+		super(account_id, audit_record_id);
 		setJourney(journey);
 		setStatus(status);
 		setBrowser(browser);
-		setAccountId(account_id);
 	}
 	
 	public VerifiedJourneyMessage clone(){

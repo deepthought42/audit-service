@@ -8,8 +8,6 @@ public class DiscardedJourneyMessage extends DomainAuditMessage {
 	private Journey journey;
 	private BrowserType browserType;
 	private long domainId;
-	private long accountId;
-	private long auditRecordId;
    
 	public DiscardedJourneyMessage() {}
 	
@@ -18,11 +16,10 @@ public class DiscardedJourneyMessage extends DomainAuditMessage {
 								   long domainId, 
 								   long accountId, 
 								   long auditRecordId) {
+		super(accountId, auditRecordId);
 		setJourney(journey);
 		setBrowserType(browserType);
 		setDomainId(domainId);
-		setAccountId(accountId);
-		setAuditRecordId(auditRecordId);
 	}
 
 	public BrowserType getBrowserType() {
@@ -39,22 +36,6 @@ public class DiscardedJourneyMessage extends DomainAuditMessage {
 
 	public void setDomainId(long domainId) {
 		this.domainId = domainId;
-	}
-
-	public long getAccountId() {
-		return accountId;
-	}
-
-	public void setAccountId(long accountId) {
-		this.accountId = accountId;
-	}
-
-	public long getAuditRecordId() {
-		return auditRecordId;
-	}
-
-	public void setAuditRecordId(long auditRecordId) {
-		this.auditRecordId = auditRecordId;
 	}
 
 	public Journey getJourney() {

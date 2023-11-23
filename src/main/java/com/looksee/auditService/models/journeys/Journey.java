@@ -31,22 +31,21 @@ public class Journey extends LookseeObject {
 		super();
 		setSteps(new ArrayList<>());
 		setOrderedIds(new ArrayList<>());
+		setCandidateKey(generateCandidateKey());
 		setKey(generateKey());
 	}
 	
 	public Journey(List<Step> steps, JourneyStatus status) {
 		super();
-		List<Long> ordered_ids = steps.stream()
-									  .map(step -> step.getId())
-									  .filter(id -> id != null)
-									  .collect(Collectors.toList());
 		setSteps(steps);
-		setOrderedIds(ordered_ids);
 		setStatus(status);
 		if(JourneyStatus.CANDIDATE.equals(status)) {
 			setCandidateKey(generateCandidateKey());
+			setKey(getCandidateKey());
 		}
-		setKey(generateKey());
+		else {
+			setKey(generateKey());
+		}
 	}
 	
 	public Journey(List<Step> steps, 
@@ -58,8 +57,11 @@ public class Journey extends LookseeObject {
 		setStatus(status);
 		if(JourneyStatus.CANDIDATE.equals(status)) {
 			setCandidateKey(generateCandidateKey());
+			setKey(getCandidateKey());
 		}
-		setKey(generateKey());
+		else {
+			setKey(generateKey());
+		}
 	}
 	
 	/**
@@ -67,29 +69,29 @@ public class Journey extends LookseeObject {
 	 */
 	@Override
 	public String generateKey() {
-		return "journey"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(StringUtils.join(orderedIds, "|"));
+		//return generateCandidateKey();//
+		return "journey"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(StringUtils.join(getOrderedIds(), "|"));
 	}
-	
-	
+
 	/**
 	 * generates a key using key values of each step in order
 	 */
 	public String generateCandidateKey() {
 		List<String> ordered_keys = getSteps().stream()
 								  		.map(step -> step.getKey())
-								  		.filter(id -> id != null)
 								  		.collect(Collectors.toList());
 		
 		return "journey"+org.apache.commons.codec.digest.DigestUtils.sha256Hex(StringUtils.join(ordered_keys, "|"));
 	}
-
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Journey clone() {
-		return new Journey(new ArrayList<>(getSteps()), new ArrayList<>(getOrderedIds()), getStatus());
+		return new Journey(new ArrayList<>(getSteps()), 
+						   new ArrayList<>(getOrderedIds()), 
+						   getStatus());
 	}
 	
 	public List<Step> getSteps() {
@@ -105,7 +107,6 @@ public class Journey extends LookseeObject {
 		
 		List<Long> ordered_ids = steps.stream()
 									  .map(step -> step.getId())
-									  .filter(id -> id != null)
 									  .collect(Collectors.toList());
 		setOrderedIds(ordered_ids);
 	}

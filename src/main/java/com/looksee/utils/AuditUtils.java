@@ -480,7 +480,7 @@ public class AuditUtils {
 		
 		List<Audit> filtered_audits = audit_list.stream()
 												.filter(audit -> category.equals(audit.getCategory()))
-												.filter(audit -> category_audit_labels.contains(audit.getName()))
+												.filter(audit -> category_audit_labels.contains(audit.getName()))										
 												.collect(Collectors.toList());
 		
 		
@@ -492,12 +492,15 @@ public class AuditUtils {
 				audit_count_map.put(audit.getName(), 1);
 			}
 		}
-		
+
+		/*
 		double total_count = 0;
 		for(int count : audit_count_map.values()) {
 			total_count += count;
 		}
-		
+		*/
+		double total_count = audit_count_map.values().stream().mapToDouble(i -> i).sum();
+		log.warn("total count value = "+total_count);
 		total_count = total_count / (double)category_audit_labels.size();
 		return total_count / (double)page_count;
 		

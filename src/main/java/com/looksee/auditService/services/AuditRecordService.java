@@ -21,6 +21,7 @@ import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.UXIssueMessage;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.ExecutionStatus;
+import com.looksee.auditService.models.enums.JourneyStatus;
 import com.looksee.auditService.models.repository.AccountRepository;
 import com.looksee.auditService.models.repository.AuditRecordRepository;
 import com.looksee.auditService.models.repository.AuditRepository;
@@ -62,7 +63,6 @@ public class AuditRecordService {
 	@Autowired
 	private UXIssueMessageRepository ux_issue_repo;
 	
-	@Deprecated
 	public AuditRecord save(AuditRecord audit) {
 		assert audit != null;
 
@@ -74,25 +74,6 @@ public class AuditRecordService {
 
 		AuditRecord audit_record = audit_record_repo.save(audit);
 		
-		/*
-		if(audit instanceof DomainAuditRecord 
-				&& account_id != null 
-				&& account_id >= 0 
-				&& domain_id != null 
-				&& domain_id >= 0) 
-		{
-			try {
-				Account account = account_service.findById(account_id).get();
-				int id_start_idx = account.getUserId().indexOf('|');
-				String user_id = account.getUserId().substring(id_start_idx+1);
-				Domain domain = domain_repo.findById(domain_id).get();
-				DomainDto domain_dto = domain_dto_service.build(domain);
-				MessageBroadcaster.sendAuditUpdate(user_id, domain_dto);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		*/
 		//broadcast audit record to users
 		return audit_record;
 	}
@@ -404,5 +385,13 @@ public class AuditRecordService {
 
 	public Set<Audit> getAllAuditsForDomainAudit(long domain_audit_record_id) {
 		return audit_repo.getAllAuditsForDomainAudit(domain_audit_record_id);
+	}
+
+	public int getNumberOfJourneysWithStatus(long domain_audit_id, JourneyStatus candidate) {
+		return audit_record_repo.getNumberOfJourneysWithStatus(domain_audit_id, candidate.toString());
+	}
+
+	public int getNumberOfJourneys(long domain_audit_id) {
+		return audit_record_repo.getNumberOfJourneys(domain_audit_id);
 	}
 }
