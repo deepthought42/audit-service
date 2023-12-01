@@ -28,7 +28,6 @@ public class SendGridMailService {
         sendMail(to, from, subject, msg);
     }
     
-    @Deprecated
     public void sendMail(Email to, Email from, String subject, String msg) {      
         Content content = new Content("text/html", msg);
         Mail mail = new Mail(from, subject, to, content);
