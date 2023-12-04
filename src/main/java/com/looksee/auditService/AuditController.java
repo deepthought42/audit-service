@@ -147,13 +147,13 @@ public class AuditController {
 			// If domain audit exists send a domain level audit update
 			if(domain_audit.isPresent()) {
 				 //Broadcast audit update message to pusher
-			    PageAuditDto audit_update = builPagedAuditdDto(domain_audit.get().getId(), domain_audit.get().getUrl());
+				AuditUpdateDto audit_update = buildPageAuditUpdatedDto(domain_audit.get().getId());
 				log.warn("sending audit record update to user");
 				pusher.sendAuditUpdate(domain_audit.get().getId()+"", audit_update);
 			}
 			else {
 				 //Broadcast audit update message to pusher
-			    PageAuditDto audit_update = builPagedAuditdDto(audit_record.getId(), audit_record.getUrl());
+				AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_record.getId());
 				log.warn("sending audit record update to user");
 				pusher.sendAuditUpdate(audit_record.getId()+"", audit_update);
 			}
@@ -174,7 +174,7 @@ public class AuditController {
 
 		    log.warn("(JourneyMappingProgress) building AuditUpdateDTO");
 	    	//AuditUpdateDto audit_update = buildAuditRecordDTO(audit_msg);
-		    PageAuditDto audit_update = builPagedAuditdDto(audit_msg.getDomainAuditRecordId(), target);
+		    AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getDomainAuditRecordId());
 			log.warn("sending audit record update to user");
 			pusher.sendAuditUpdate(audit_msg.getDomainAuditRecordId()+"", audit_update);
 			
@@ -198,7 +198,7 @@ public class AuditController {
 		    journey_key = journey_candidate_msg.getJourney().getKey();
 		    
 		    log.warn("(JourneyCandidate) finding DomainAuditRecord by id = "+journey_candidate_msg.getDomainAuditRecordId());
-			AuditUpdateDto audit_update = buildAuditRecordDTO(journey_candidate_msg);
+			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg);
 		    //PageAuditDto audit_update = builPagedAuditdDto(journey_candidate_msg.getDomainAuditRecordId(), target);
 			log.warn("sending audit record update to user");
 			pusher.sendAuditUpdate(journey_candidate_msg.getDomainAuditRecordId()+"", audit_update);
@@ -220,7 +220,7 @@ public class AuditController {
 		    
 		    log.warn("(VerifiedJourney) finding DomainAuditRecord by id = "+verified_journey_msg.getDomainAuditRecordId());
 			//AuditUpdateDto audit_update = buildAuditRecordDTO(verified_journey_msg);
-		    PageAuditDto audit_update = builPagedAuditdDto(verified_journey_msg.getDomainAuditRecordId(), target);
+		    AuditUpdateDto audit_update = buildPageAuditUpdatedDto(verified_journey_msg.getDomainAuditRecordId());
 			log.warn("sending audit record update to user");
 			pusher.sendAuditUpdate(verified_journey_msg.getDomainAuditRecordId()+"", audit_update);
 		    
@@ -241,7 +241,7 @@ public class AuditController {
 
 		    log.warn("(DiscardedJourney) finding DomainAuditRecord by id = "+discarded_journey_msg.getDomainAuditRecordId());
 			//AuditUpdateDto audit_update = buildAuditRecordDTO(discarded_journey_msg);
-			PageAuditDto audit_update = builPagedAuditdDto(discarded_journey_msg.getDomainAuditRecordId(), target);
+		    AuditUpdateDto audit_update = buildPageAuditUpdatedDto(discarded_journey_msg.getDomainAuditRecordId());
 			log.warn("sending audit record update to user");
 			pusher.sendAuditUpdate(discarded_journey_msg.getDomainAuditRecordId()+"", audit_update);
 			
@@ -321,30 +321,29 @@ public class AuditController {
 		 *     - overall progress - decimal 0-1 inclusive
 		 */
 		
-		//set values needed for auditUpdateDto
-		int audit_record_id = 0;
-		AuditLevel audit_type = AuditLevel.DOMAIN;
-		
-		return new AuditUpdateDto( audit_record_id,
-								   audit_type,
-								   data_extraction_progress,
-								   aesthetic_progress,
-								   content_progress,
-								   info_architecture_progress,
-								   overall_progress,
-								   complete_pages, 
-								   total_pages);
+		//set values needed for auditUpdateDto		
+		return new AuditUpdateDto( audit_msg.getDomainAuditRecordId(),
+									AuditLevel.DOMAIN,
+									content_score,
+									content_progress,
+									info_architecture_score,
+									info_architecture_progress,
+									accessibility_score,
+									aesthetic_score,
+									aesthetic_progress,
+									data_extraction_progress,
+									message, 
+									status);
 	}
 	
 	/**
 	 * Creates an {@linkplain PageAuditDto} using page audit ID and the provided page_url
 	 * @param pageAuditId
-	 * @param page_url
 	 * @return
 	 */
-	private PageAuditDto builPagedAuditdDto(long pageAuditId, String page_url) {
+	private AuditUpdateDto buildPageAuditUpdatedDto(long page_audit_id) {
 		//get all audits
-		Set<Audit> audits = audit_record_service.getAllAudits(pageAuditId);
+		Set<Audit> audits = audit_record_service.getAllAudits(page_audit_id);
 		Set<AuditName> audit_labels = new HashSet<AuditName>();
 		audit_labels.add(AuditName.TEXT_BACKGROUND_CONTRAST);
 		audit_labels.add(AuditName.NON_TEXT_BACKGROUND_CONTRAST);
@@ -389,18 +388,18 @@ public class AuditController {
 			execution_status = ExecutionStatus.COMPLETE;
 		}
 		
-		return new PageAuditDto(pageAuditId, 
-								page_url, 
-								content_score, 
-								content_progress, 
-								info_architecture_score, 
-								info_architecture_progress, 
-								a11y_score,
-								visual_design_score,
-								visual_design_progress,
-								data_extraction_progress, 
-								message, 
-								execution_status);
+		return new AuditUpdateDto( page_audit_id,
+									AuditLevel.PAGE,
+									content_score,
+									content_progress,
+									info_architecture_score,
+									info_architecture_progress,
+									accessibility_score,
+									aesthetic_score,
+									aesthetic_progress,
+									data_extraction_progress,
+									message, 
+									status);
 	}
 	
 	/**
@@ -409,7 +408,7 @@ public class AuditController {
 	 * @param audit_msg
 	 * @return
 	 */
-	private AuditUpdateDto buildAuditRecordDTO(DomainAuditMessage domain_audit_msg) {
+	private AuditUpdateDto buildDomainAuditRecordDTO(DomainAuditMessage domain_audit_msg) {
 		DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(domain_audit_msg.getDomainAuditRecordId()).get();
 	    Set<AuditRecord> page_audits = audit_record_service.getAllPageAudits(domain_audit.getId());
 	    log.warn("total page audits found = "+page_audits.size());
@@ -471,18 +470,19 @@ public class AuditController {
 		 */
 		
 		//set values needed for auditUpdateDto
-		int audit_record_id = 0;
-		AuditLevel audit_type = AuditLevel.DOMAIN;
 		
-		return new AuditUpdateDto( audit_record_id,
-								   audit_type,
-								   data_extraction_progress,
-								   aesthetic_progress,
-								   content_progress,
-								   info_architecture_progress,
-								   overall_progress,
-								   complete_pages, 
-								   total_pages);
+		return new AuditUpdateDto( domain_audit_msg.getDomainAuditRecordId(),
+									AuditLevel.DOMAIN,
+									content_score,
+									content_progress,
+									info_architecture_score,
+									info_architecture_progress,
+									accessibility_score,
+									aesthetic_score,
+									aesthetic_progress,
+									data_extraction_progress,
+									message, 
+									status);
 	}
 	
 	/**
@@ -561,18 +561,19 @@ public class AuditController {
 		 */
 		
 		//set values needed for auditUpdateDto
-		int audit_record_id = 0;
-		AuditLevel audit_type = AuditLevel.PAGE;	
 		
-		return new AuditUpdateDto( audit_record_id,
-								   audit_type,
-								   data_extraction_progress,
-								   aesthetic_progress,
-								   content_progress,
-								   info_architecture_progress,
-								   overall_progress,
-								   complete_audits, 
-								   1);
+		return new AuditUpdateDto( audit_msg.getPageAuditId(),
+									AuditLevel.PAGE,
+									content_score,
+									content_progress,
+									info_architecture_score,
+									info_architecture_progress,
+									accessibility_score,
+									aesthetic_score,
+									aesthetic_progress,
+									data_extraction_progress,
+									message, 
+									status);
 	}
   /*
   public void publishMessage(String messageId, Map<String, String> attributeMap, String message) throws ExecutionException, InterruptedException {
