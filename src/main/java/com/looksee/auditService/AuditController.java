@@ -33,8 +33,8 @@ import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.AuditLevel;
 import com.looksee.auditService.models.enums.AuditName;
 import com.looksee.auditService.models.enums.JourneyStatus;
+import com.looksee.auditService.models.message.AuditProgressUpdate;
 import com.looksee.auditService.models.message.DiscardedJourneyMessage;
-import com.looksee.auditService.models.message.DomainAuditMessage;
 import com.looksee.auditService.models.message.JourneyCandidateMessage;
 import com.looksee.auditService.models.message.JourneyMappingProgressMessage;
 import com.looksee.auditService.models.message.PageAuditProgressMessage;
@@ -84,8 +84,54 @@ public class AuditController {
 	    ObjectMapper input_mapper = new ObjectMapper();
 	    input_mapper.registerModule(new JavaTimeModule());
 	    //JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
+	    	    
+	    try {
+	    	AuditProgressUpdate audit_msg = input_mapper.readValue(target, AuditProgressUpdate.class);
+	    	
+	    	//get AuditRecord from database
+	    	Optional<AuditRecord> audit_record = audit_record_service.findById(audit_msg.getAuditRecordId());
+	    	if(audit_record.isPresent() && audit_record.get() instanceof PageAuditRecord) {
+	    		//build page audit progress
+	    		AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getAuditRecordId());
+				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
+
+	    		//if domain audit is complete then send email
+	    		if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
+	    			log.warn("sending email to user");
+	    	    	//send email that audit is complete
+	    			Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getAuditRecordId());
+	    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
+	    													  domain.getUrl(), 
+	    													  domain.getId());
+	    		}
+	    		
+	    		//send Pusher message
+	    	}
+	    	else if(audit_record.isPresent() && audit_record.get() instanceof DomainAuditRecord) {
+	    		//build domain audit progress
+	    		AuditUpdateDto audit_update = buildDomainAuditRecordDTO(audit_msg.getAuditRecordId());
+				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
+
+	    		//if domain audit is complete then send email
+	    		if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
+	    			log.warn("sending email to user");
+	    	    	//send email that audit is complete
+	    			Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getAuditRecordId());
+	    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
+	    													  domain.getUrl(), 
+	    													  domain.getId());
+	    		}
+	    		
+	    		//send pusher message
+	    	}
+	    } catch(Exception e) {
 	    
-	    boolean is_known_type = false;
+	    }
+
+	    
+	    
 	    /********************************************************
 	    * PAGE AUDIT PROGRESS EVENTS
 	    ********************************************************/
@@ -182,7 +228,6 @@ public class AuditController {
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
-	    	//log.warn("An exception occurred while converting JSON to DomainMappingProgressMessage : "+e.getMessage());
 	    }
 
 	    
@@ -198,7 +243,7 @@ public class AuditController {
 		    journey_key = journey_candidate_msg.getJourney().getKey();
 		    
 		    log.warn("(JourneyCandidate) finding DomainAuditRecord by id = "+journey_candidate_msg.getDomainAuditRecordId());
-			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg);
+			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg.getDomainAuditRecordId());
 		    //PageAuditDto audit_update = builPagedAuditdDto(journey_candidate_msg.getDomainAuditRecordId(), target);
 			log.warn("sending audit record update to user");
 			pusher.sendAuditUpdate(journey_candidate_msg.getDomainAuditRecordId()+"", audit_update);
@@ -264,76 +309,72 @@ public class AuditController {
 	}
 
 	/**
-	 * Build audit {@link AuditRecordDTO progress update} for a domain audit
+	 * Creates an {@linkplain AuditUpdateDto} using page audit ID and the provided page_url
 	 * 
-	 * @param audit_msg
+	 * @param pageAuditId
 	 * @return
+	 * 
+	 * @pre level != null
 	 */
-	private AuditUpdateDto buildAuditRecordDTO(JourneyMappingProgressMessage audit_msg) {
-		DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_msg.getDomainAuditRecordId()).get();
-	    Set<AuditRecord> page_audits = audit_record_service.getAllPageAudits(audit_msg.getDomainAuditRecordId());
-	    log.warn("total page audits found = "+page_audits.size());
-	    int total_pages = page_audits.size();
-	    Set<AuditName> audit_labels = domain_audit.getAuditLabels();
-	    Set<Audit> audit_list = audit_record_service.getAllAuditsForDomainAudit(domain_audit.getId());
-	    //calculate percentage of audits that are currently complete for each category
-		double aesthetic_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, total_pages, audit_list, audit_labels);
-		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, total_pages, audit_list, audit_labels);;
-		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, total_pages, audit_list, audit_labels);;
-		
+	private AuditUpdateDto buildAuditUpdatedDto(long pageAuditId, AuditLevel level) {
+		//get all audits
+		Set<Audit> audits = audit_record_service.getAllAudits(pageAuditId);
+		Set<AuditName> audit_labels = new HashSet<AuditName>();
+		audit_labels.add(AuditName.TEXT_BACKGROUND_CONTRAST);
+		audit_labels.add(AuditName.NON_TEXT_BACKGROUND_CONTRAST);
+		audit_labels.add(AuditName.TITLES);
+		audit_labels.add(AuditName.IMAGE_COPYRIGHT);
+		audit_labels.add(AuditName.IMAGE_POLICY);
+		audit_labels.add(AuditName.LINKS);
+		audit_labels.add(AuditName.ALT_TEXT);
+		audit_labels.add(AuditName.METADATA);
+		audit_labels.add(AuditName.READING_COMPLEXITY);
+		audit_labels.add(AuditName.PARAGRAPHING);
+		audit_labels.add(AuditName.ENCRYPTED);
+		//count audits for each category
+		//calculate content score
+		//calculate aesthetics score
+		//calculate information architecture score
+		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, 
+																 1, 
+																 audits, 
+																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS, audit_labels));
+		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, 
+																1, 
+																audits, 
+																audit_labels);
+		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, 
+																		1, 
+																		audits, 
+																		audit_labels);
 
-		double data_extraction_progress = domain_audit.getDataExtractionProgress();
-		log.warn("data extraction progress = "+data_extraction_progress);
-		
-		//retrieve all journeys for domain audit
-		double overall_progress = (data_extraction_progress
-									+ aesthetic_progress
-									+ content_progress
-									+ info_architecture_progress)/4;
-		
-		log.warn("Total audits that are still in progress = "+page_audits.size());
-		log.warn("Overall Progress = "+overall_progress);
-		//if domain audit is complete then send email
-		if( overall_progress >= 1 ) {
-			log.warn("sending email to user");
-	    	//send email that audit is complete
-			Account account = account_service.findById(audit_msg.getAccountId()).get();
-		    Domain domain = domain_service.findByAuditRecord(audit_msg.getDomainAuditRecordId());
-			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
-													  domain.getUrl(), 
-													  domain.getId());
+		double content_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.CONTENT);
+		double info_architecture_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.INFORMATION_ARCHITECTURE);
+		double visual_design_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.AESTHETICS);
+		double a11y_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.ACCESSIBILITY);
+
+		double data_extraction_progress = 1;
+		String message = "";
+		ExecutionStatus execution_status = ExecutionStatus.UNKNOWN;
+		if(visual_design_progress < 1 || content_progress < 1 || visual_design_progress < 1) {
+			execution_status = ExecutionStatus.IN_PROGRESS;
+		}
+		else {
+			execution_status = ExecutionStatus.COMPLETE;
 		}
 		
-		int complete_pages = (int)Math.floor(((aesthetic_progress
-											+ content_progress
-											+ info_architecture_progress)/3)*total_pages);
-		
-		//build auditUpdate DTO . 
-		/*
-		 * This message consists of the following:
-		 * 
-		 *     - Audit Record ID - integer
-		 *     - Audit record type - [Page, Domain]
-		 *     - Data Extraction audit progress - decimal 0-1 inclusive
-		 *     - Aesthetic Audit progress - decimal 0-1 inclusive
-		 *     - Content Audit progress - decimal 0-1 inclusive
-		 *     - Information Architecture audit progress - decimal 0-1 inclusive
-		 *     - overall progress - decimal 0-1 inclusive
-		 */
-		
-		//set values needed for auditUpdateDto		
-		return new AuditUpdateDto( audit_msg.getDomainAuditRecordId(),
-									AuditLevel.DOMAIN,
-									content_score,
-									content_progress,
-									info_architecture_score,
-									info_architecture_progress,
-									accessibility_score,
-									aesthetic_score,
-									aesthetic_progress,
-									data_extraction_progress,
+		return new AuditUpdateDto(pageAuditId,
+									level,
+									content_score, 
+									content_progress, 
+									info_architecture_score, 
+									info_architecture_progress, 
+									a11y_score,
+									visual_design_score,
+									visual_design_progress,
+									data_extraction_progress, 
 									message, 
-									status);
+									execution_status);
 	}
 	
 	/**
@@ -380,6 +421,7 @@ public class AuditController {
 
 		double data_extraction_progress = 1;
 		String message = "";
+		
 		ExecutionStatus execution_status = ExecutionStatus.UNKNOWN;
 		if(visual_design_progress < 1 || content_progress < 1 || visual_design_progress < 1) {
 			execution_status = ExecutionStatus.IN_PROGRESS;
@@ -394,12 +436,12 @@ public class AuditController {
 									content_progress,
 									info_architecture_score,
 									info_architecture_progress,
-									accessibility_score,
-									aesthetic_score,
-									aesthetic_progress,
+									a11y_score,
+									visual_design_score,
+									visual_design_progress,
 									data_extraction_progress,
 									message, 
-									status);
+									execution_status);
 	}
 	
 	/**
@@ -408,8 +450,8 @@ public class AuditController {
 	 * @param audit_msg
 	 * @return
 	 */
-	private AuditUpdateDto buildDomainAuditRecordDTO(DomainAuditMessage domain_audit_msg) {
-		DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(domain_audit_msg.getDomainAuditRecordId()).get();
+	private AuditUpdateDto buildDomainAuditRecordDTO(long audit_record_id) {
+		DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_record_id).get();
 	    Set<AuditRecord> page_audits = audit_record_service.getAllPageAudits(domain_audit.getId());
 	    log.warn("total page audits found = "+page_audits.size());
 	    int total_pages = page_audits.size();
@@ -426,63 +468,39 @@ public class AuditController {
 	   */
 	 //   Set<Audit> audit_list = audit_record_service.getAllAuditsForDomainAudit(domain_audit.getId());
 	    //calculate percentage of audits that are currently complete for each category
-		double aesthetic_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, total_pages, audits, audit_labels);
+		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, total_pages, audits, audit_labels);
 		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, total_pages, audits, audit_labels);
 		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, total_pages, audits, audit_labels);
 		
 		double data_extraction_progress = getDataExtractionProgress(domain_audit);
 		
-		log.warn("data extraction progress = "+data_extraction_progress);
-		
-		//retrieve all journeys for domain audit
-		double overall_progress = (data_extraction_progress
-									+ aesthetic_progress
-									+ content_progress
-									+ info_architecture_progress)/4;
-		
-		log.warn("Total audits that are still in progress = "+page_audits.size());
-		//if domain audit is complete then send email
-		if( overall_progress >= 1 ) {
-			log.warn("sending email to user");
-	    	//send email that audit is complete
-			Account account = account_service.findById(domain_audit_msg.getAccountId()).get();
-		    Domain domain = domain_service.findByAuditRecord(domain_audit_msg.getDomainAuditRecordId());
-			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
-													  domain.getUrl(), 
-													  domain.getId());
+		double content_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.CONTENT);
+		double info_architecture_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.INFORMATION_ARCHITECTURE);
+		double visual_design_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.AESTHETICS);
+		double a11y_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.ACCESSIBILITY);
+			
+		ExecutionStatus execution_status = ExecutionStatus.UNKNOWN;
+		if(visual_design_progress < 1 || content_progress < 1 || visual_design_progress < 1 || data_extraction_progress < 1) {
+			execution_status = ExecutionStatus.IN_PROGRESS;
+		}
+		else {
+			execution_status = ExecutionStatus.COMPLETE;
 		}
 		
-		int complete_pages = (int)Math.floor(((aesthetic_progress
-											+ content_progress
-											+ info_architecture_progress)/3)*total_pages);
-		
-		//build auditUpdate DTO . 
-		/*
-		 * This message consists of the following:
-		 * 
-		 *     - Audit Record ID - integer
-		 *     - Audit record type - [Page, Domain]
-		 *     - Data Extraction audit progress - decimal 0-1 inclusive
-		 *     - Aesthetic Audit progress - decimal 0-1 inclusive
-		 *     - Content Audit progress - decimal 0-1 inclusive
-		 *     - Information Architecture audit progress - decimal 0-1 inclusive
-		 *     - overall progress - decimal 0-1 inclusive
-		 */
-		
-		//set values needed for auditUpdateDto
-		
-		return new AuditUpdateDto( domain_audit_msg.getDomainAuditRecordId(),
+		String message = "";
+				
+		return new AuditUpdateDto( audit_record_id,
 									AuditLevel.DOMAIN,
 									content_score,
 									content_progress,
 									info_architecture_score,
 									info_architecture_progress,
-									accessibility_score,
-									aesthetic_score,
-									aesthetic_progress,
+									a11y_score,
+									visual_design_score,
+									visual_design_progress,
 									data_extraction_progress,
 									message, 
-									status);
+									execution_status);
 	}
 	
 	/**
@@ -506,87 +524,4 @@ public class AuditController {
 
 	}
 
-	/**
-	 * Build an AuditRecordDTO for a single page audit progress update
-	 * 
-	 * @param audit_msg
-	 * @return
-	 */
-	private AuditUpdateDto buildAuditRecordDTO(PageAuditProgressMessage audit_msg) {
-		PageAuditRecord page_audit = (PageAuditRecord)audit_record_service.findById(audit_msg.getPageAuditId()).get();
-	    Set<AuditName> audit_labels = page_audit.getAuditLabels();
-	    Set<Audit> audit_list = audit_record_service.getAllAuditsForDomainAudit(page_audit.getId());
-	    
-	    //calculate percentage of audits that are currently complete for each category
-		double aesthetic_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, 1, audit_list, audit_labels);
-		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, 1, audit_list, audit_labels);;
-		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, 1, audit_list, audit_labels);;
-		
-
-		double data_extraction_progress = page_audit.getDataExtractionProgress();
-		log.warn("data extraction progress = "+data_extraction_progress);
-		
-		//retrieve all journeys for domain audit
-		double overall_progress = data_extraction_progress
-									+ aesthetic_progress
-									+ content_progress
-									+ info_architecture_progress;
-		
-		//if domain audit is complete then send email
-		if( overall_progress >= 1 ) {
-			log.warn("sending email to user");
-	    	//send email that audit is complete
-			Account account = account_service.findById(audit_msg.getAccountId()).get();
-			//Domain domain = domain_service.findById(audit_msg.getDomainId()).get();
-			mail_service.sendPageAuditCompleteEmail(account.getEmail(), 
-													  page_audit.getUrl(), 
-													  audit_msg.getPageAuditId());
-		}
-		
-		int complete_audits = (int)Math.floor(((aesthetic_progress
-											+ content_progress
-											+ info_architecture_progress)/3));
-		
-		//build auditUpdate DTO . 
-		/*
-		 * This message consists of the following:
-		 * 
-		 *     - Audit Record ID - integer
-		 *     - Audit record type - [Page, Domain]
-		 *     - Data Extraction audit progress - decimal 0-1 inclusive
-		 *     - Aesthetic Audit progress - decimal 0-1 inclusive
-		 *     - Content Audit progress - decimal 0-1 inclusive
-		 *     - Information Architecture audit progress - decimal 0-1 inclusive
-		 *     - overall progress - decimal 0-1 inclusive
-		 */
-		
-		//set values needed for auditUpdateDto
-		
-		return new AuditUpdateDto( audit_msg.getPageAuditId(),
-									AuditLevel.PAGE,
-									content_score,
-									content_progress,
-									info_architecture_score,
-									info_architecture_progress,
-									accessibility_score,
-									aesthetic_score,
-									aesthetic_progress,
-									data_extraction_progress,
-									message, 
-									status);
-	}
-  /*
-  public void publishMessage(String messageId, Map<String, String> attributeMap, String message) throws ExecutionException, InterruptedException {
-      log.info("Sending Message to the topic:::");
-      PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
-              .putAllAttributes(attributeMap)
-              .setData(ByteString.copyFromUtf8(message))
-              .setMessageId(messageId)
-              .build();
-
-      pubSubPublisherImpl.publish(pubsubMessage);
-  }
-  */
 }
-// [END run_pubsub_handler]
-// [END cloudrun_pubsub_handler]
