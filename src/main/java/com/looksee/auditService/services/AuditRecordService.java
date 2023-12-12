@@ -281,8 +281,8 @@ public class AuditRecordService {
 		return audit_record_repo.getPageAuditRecordCount(domain_audit_id);
 	}
 
-	public Set<Audit> getAllAudits(long id) {
-		return audit_repo.getAllAudits(id);
+	public Set<Audit> getAllAudits(long audit_record_id) {
+		return audit_repo.getAllAudits(audit_record_id);
 	}
 
 	public boolean isDomainAuditComplete(AuditRecord audit_record) {		
@@ -393,5 +393,19 @@ public class AuditRecordService {
 
 	public int getNumberOfJourneys(long domain_audit_id) {
 		return audit_record_repo.getNumberOfJourneys(domain_audit_id);
+	}
+
+	public PageState findPage(long audit_record_id) {
+		return page_state_repo.getPageStateForAuditRecord(audit_record_id);
+	}
+	
+	/**
+	 * Retrieve {@link PageState} for the {@linkplain AuditRecord} with the given id
+	 * @param page_audit_key
+	 * @return
+	 */
+	public PageState getPageStateForAuditRecord(long audit_record_id) {
+
+		return audit_record_repo.getPageStateForAuditRecord(audit_record_id);
 	}
 }

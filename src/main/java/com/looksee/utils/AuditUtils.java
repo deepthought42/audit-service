@@ -503,7 +503,6 @@ public class AuditUtils {
 		log.warn("total count value = "+total_count);
 		total_count = total_count / (double)category_audit_labels.size();
 		return total_count / (double)page_count;
-		
 	}
 	
 

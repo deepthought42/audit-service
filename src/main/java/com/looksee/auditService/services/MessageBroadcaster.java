@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.auditService.models.dto.AuditUpdateDto;
-import com.looksee.auditService.models.dto.PageAuditDto;
 import com.looksee.auditService.models.PageAuditRecord;
 
 import com.pusher.rest.Pusher;
@@ -40,33 +39,15 @@ public class MessageBroadcaster {
 	 * @param audit_record
 	 * @throws JsonProcessingException
 	 */
-	public void sendAuditUpdate(String channel_id, PageAuditDto audit_record) throws JsonProcessingException {
-		assert channel_id != null;
-		assert !channel_id.isEmpty();
-		assert audit_record != null;
-		
-		log.warn("Sending page audit record to user");
-		ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        String audit_record_json = mapper.writeValueAsString(audit_record);
-		pusher.trigger(channel_id, "audit-record", audit_record_json);
-	}
-	
-	/**
-	 * Sends {@linkplain PageAuditRecord} to user via Pusher
-	 * @param account_id
-	 * @param audit_record
-	 * @throws JsonProcessingException
-	 */
 	public void sendAuditUpdate(String channel_id, AuditUpdateDto audit_update) throws JsonProcessingException {
 		assert channel_id != null;
 		assert !channel_id.isEmpty();
 		assert audit_update != null;
 		
-		log.warn("Sending page audit record to user");
 		ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         String audit_record_json = mapper.writeValueAsString(audit_update);
-		pusher.trigger(channel_id, "audit-record", audit_record_json);
+        log.warn("Sending page audit record to user:    "+audit_record_json);
+		pusher.trigger(channel_id, "audit-progress", audit_record_json);
 	}
 }

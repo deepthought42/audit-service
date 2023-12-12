@@ -36,14 +36,13 @@ import com.looksee.auditService.models.enums.JourneyStatus;
 import com.looksee.auditService.models.message.AuditProgressUpdate;
 import com.looksee.auditService.models.message.DiscardedJourneyMessage;
 import com.looksee.auditService.models.message.JourneyCandidateMessage;
-import com.looksee.auditService.models.message.JourneyMappingProgressMessage;
 import com.looksee.auditService.models.message.PageAuditProgressMessage;
 import com.looksee.auditService.models.message.VerifiedJourneyMessage;
-import com.looksee.auditService.models.repository.PageStateRepository;
 import com.looksee.auditService.services.AccountService;
 import com.looksee.auditService.services.AuditRecordService;
 import com.looksee.auditService.services.DomainService;
 import com.looksee.auditService.services.MessageBroadcaster;
+import com.looksee.auditService.services.PageStateService;
 import com.looksee.auditService.services.SendGridMailService;
 import com.looksee.auditService.models.dto.PageAuditDto;
 import com.looksee.auditService.models.enums.ExecutionStatus;
@@ -63,7 +62,7 @@ public class AuditController {
 	private DomainService domain_service;
 	
 	@Autowired
-	private PageStateRepository page_state_repo;
+	private PageStateService page_state_service;
 	
 	@Autowired
 	private SendGridMailService mail_service;
@@ -81,16 +80,17 @@ public class AuditController {
 
 	    log.warn("message received = "+target);
 
-	    ObjectMapper input_mapper = new ObjectMapper();
-	    input_mapper.registerModule(new JavaTimeModule());
-	    //JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
+	    ObjectMapper mapper = new ObjectMapper();
+	    mapper.registerModule(new JavaTimeModule());
 	    	    
 	    try {
-	    	AuditProgressUpdate audit_msg = input_mapper.readValue(target, AuditProgressUpdate.class);
-	    	
+	    	AuditProgressUpdate audit_msg = mapper.readValue(target, AuditProgressUpdate.class);
+	    	log.warn("audit progress update message detected");
 	    	//get AuditRecord from database
 	    	Optional<AuditRecord> audit_record = audit_record_service.findById(audit_msg.getAuditRecordId());
+	    	
 	    	if(audit_record.isPresent() && audit_record.get() instanceof PageAuditRecord) {
+	    		log.warn("PageAuditRecord found");
 	    		//build page audit progress
 	    		AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getAuditRecordId());
 				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
@@ -99,16 +99,22 @@ public class AuditController {
 	    		if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
 	    			log.warn("sending email to user");
 	    	    	//send email that audit is complete
-	    			Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    			//Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    			Set<Account> accounts = account_service.findForAuditRecord(audit_msg.getAuditRecordId());
 	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getAuditRecordId());
-	    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
-	    													  domain.getUrl(), 
-	    													  domain.getId());
+	    		    
+	    		    for(Account account: accounts) {
+		    			log.warn("sending email to user = "+account.getEmail());
+		    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
+		    													  domain.getUrl(), 
+		    													  domain.getId());
+	    		    }
 	    		}
 	    		
 	    		//send Pusher message
 	    	}
 	    	else if(audit_record.isPresent() && audit_record.get() instanceof DomainAuditRecord) {
+	    		log.warn("DomainAuditRecord found");
 	    		//build domain audit progress
 	    		AuditUpdateDto audit_update = buildDomainAuditRecordDTO(audit_msg.getAuditRecordId());
 				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
@@ -117,17 +123,24 @@ public class AuditController {
 	    		if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
 	    			log.warn("sending email to user");
 	    	    	//send email that audit is complete
-	    			Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    			//Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    			Set<Account> accounts = account_service.findForAuditRecord(audit_msg.getAuditRecordId());
 	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getAuditRecordId());
-	    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
-	    													  domain.getUrl(), 
-	    													  domain.getId());
+	    		    for(Account account: accounts) {
+		    			log.warn("sending email to user = "+account.getEmail());
+		    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
+		    													  domain.getUrl(), 
+		    													  domain.getId());
+	    		    }
 	    		}
-	    		
-	    		//send pusher message
 	    	}
+	    	else {
+	    		log.warn("UKNOWN record type found");
+	    	}
+
+	    	return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    } catch(Exception e) {
-	    
+	    	e.printStackTrace();
 	    }
 
 	    
@@ -137,30 +150,16 @@ public class AuditController {
 	    ********************************************************/
 	    //if message is audit message then update page audit
 	    try {
-		    PageAuditProgressMessage audit_msg = input_mapper.readValue(target, PageAuditProgressMessage.class);			
+		    PageAuditProgressMessage audit_msg = mapper.readValue(target, PageAuditProgressMessage.class);			
 		   
 		    //update audit record
 		    log.warn("finding PageAudit by id = "+audit_msg.getPageAuditId());
 			PageAuditRecord audit_record = (PageAuditRecord)audit_record_service.findById(audit_msg.getPageAuditId()).get();
-			/*
-			
-			if(AuditCategory.AESTHETICS.equals(audit_msg.getCategory())) {
-				audit_record.setAestheticAuditProgress(audit_msg.getProgress());
-			}
-			if(AuditCategory.CONTENT.equals(audit_msg.getCategory())) {
-				audit_record.setContentAuditProgress(audit_msg.getProgress());
-			}
-			if(AuditCategory.INFORMATION_ARCHITECTURE.equals(audit_msg.getCategory())) {
-				audit_record.setInfoArchitectureAuditProgress(audit_msg.getProgress());
-			}
-			*/
 	    
 			log.warn("retrieving all audits");
 		    Set<Audit> audit_list = audit_record_service.getAllAudits(audit_msg.getPageAuditId());
 		    log.warn("collecting audit labels");
 		    Set<AuditName> audit_labels = audit_record.getAuditLabels();
-		    
-		   
 			
 			//if page audit is complete then 
 			boolean is_page_audit_complete = AuditUtils.isPageAuditComplete(audit_list, audit_labels);
@@ -183,7 +182,7 @@ public class AuditController {
 					}
 				}
 				else {
-					PageState page = page_state_repo.getPageStateForAuditRecord(audit_record.getId());							
+					PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());							
 					Account account = account_service.findById(audit_msg.getAccountId()).get();
 					log.warn("sending email to account :: "+account.getEmail());
 					mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
@@ -211,41 +210,13 @@ public class AuditController {
 	    	//log.warn("An exception occurred while converting JSON to AuditProgressUpdate : "+e.getMessage());
 	    	//e.printStackTrace();
 	    }
-	    
-	    /**
-	     * When a JourneyMappingProgressMessage is encountered, broadcast an AuditUpdate message to the audit channel
-	     */
-	    try {
-		    JourneyMappingProgressMessage audit_msg = input_mapper.readValue(target, JourneyMappingProgressMessage.class);
 
-		    log.warn("(JourneyMappingProgress) building AuditUpdateDTO");
-	    	//AuditUpdateDto audit_update = buildAuditRecordDTO(audit_msg);
-		    AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getDomainAuditRecordId());
-			log.warn("sending audit record update to user");
-			pusher.sendAuditUpdate(audit_msg.getDomainAuditRecordId()+"", audit_update);
-			
-			log.warn("sent message to user with account id = "+audit_msg.getAccountId());
-			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
-	    }
-	    catch(Exception e) {
-	    }
-
-	    
-	    //TODO: fixe issue with Unrecognized fields for Journey messages
-	    //Map<String, JourneyStatus> status_map = new HashMap<>();
-	    String journey_key = "";
-	    //if input mapper can convert Journey Candidate, then 
-	    //      1. Update JourneyStatus for journey key in domain audit to Candidate
 	    try {
-	    	log.warn("RECIEVED JourneyCandidateMessage!!!! Should this be happening?");
-		    JourneyCandidateMessage journey_candidate_msg = input_mapper.readValue(target, JourneyCandidateMessage.class);
-		    log.warn("retrieving journey key");
-		    journey_key = journey_candidate_msg.getJourney().getKey();
+		    JourneyCandidateMessage journey_candidate_msg = mapper.readValue(target, JourneyCandidateMessage.class);
+		    log.warn("Received JourneyCandidateMessage!!!! Should this be happening?");
 		    
-		    log.warn("(JourneyCandidate) finding DomainAuditRecord by id = "+journey_candidate_msg.getDomainAuditRecordId());
 			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg.getDomainAuditRecordId());
 		    //PageAuditDto audit_update = builPagedAuditdDto(journey_candidate_msg.getDomainAuditRecordId(), target);
-			log.warn("sending audit record update to user");
 			pusher.sendAuditUpdate(journey_candidate_msg.getDomainAuditRecordId()+"", audit_update);
 
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
@@ -255,39 +226,24 @@ public class AuditController {
 	    	//e.printStackTrace();
 	    }
 	    
-	    //if input mapper can convert Journey Verified, then 
-	    //		1.  Update JourneyStatus for journey key in domain audit to Verified
 	    try {
-	    	VerifiedJourneyMessage verified_journey_msg = input_mapper.readValue(target, VerifiedJourneyMessage.class);
+	    	VerifiedJourneyMessage verified_journey_msg = mapper.readValue(target, VerifiedJourneyMessage.class);
 
 	    	log.warn("(VerifiedJourney) message deserialized");
-		    journey_key = verified_journey_msg.getJourney().getKey();
 		    
-		    log.warn("(VerifiedJourney) finding DomainAuditRecord by id = "+verified_journey_msg.getDomainAuditRecordId());
-			//AuditUpdateDto audit_update = buildAuditRecordDTO(verified_journey_msg);
-		    AuditUpdateDto audit_update = buildPageAuditUpdatedDto(verified_journey_msg.getDomainAuditRecordId());
-			log.warn("sending audit record update to user");
+			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(verified_journey_msg.getDomainAuditRecordId());
 			pusher.sendAuditUpdate(verified_journey_msg.getDomainAuditRecordId()+"", audit_update);
-		    
-		    log.warn("journey key retrieved : " + journey_key);
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
 	    	//log.warn("error converting json string to VerifiedJourneyMessage : "+e.getMessage());
 	    }
 	    
-	    //if input mapper can convert Journey Verified, then 
-	    //		1. 
-	    //      2. Update JourneyStatus for journey key in domain audit to Verified
 	    try {
-		    DiscardedJourneyMessage discarded_journey_msg = input_mapper.readValue(target, DiscardedJourneyMessage.class);
-		    log.warn("DiscardedJourneyMessage identified");
-		    journey_key = discarded_journey_msg.getJourney().getKey();
+		    DiscardedJourneyMessage discarded_journey_msg = mapper.readValue(target, DiscardedJourneyMessage.class);
+		    log.warn("DiscardedJourneyMessage message deserialized");
 
-		    log.warn("(DiscardedJourney) finding DomainAuditRecord by id = "+discarded_journey_msg.getDomainAuditRecordId());
-			//AuditUpdateDto audit_update = buildAuditRecordDTO(discarded_journey_msg);
-		    AuditUpdateDto audit_update = buildPageAuditUpdatedDto(discarded_journey_msg.getDomainAuditRecordId());
-			log.warn("sending audit record update to user");
+		    AuditUpdateDto audit_update = buildDomainAuditRecordDTO(discarded_journey_msg.getDomainAuditRecordId());
 			pusher.sendAuditUpdate(discarded_journey_msg.getDomainAuditRecordId()+"", audit_update);
 			
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
@@ -297,89 +253,14 @@ public class AuditController {
 	    	//log.warn("error converting json string to DiscardedJourneyMessage : "+e.getMessage());
 	    }
 	    
-	    
-	    
-	    
-	    
-	    // update data extraction of domain audit to equal the number of journey keys that do NOT have an empty string associated with them over the
-	    //       number of journeys present in domain audit
-	    
-	    //if domain audit is complete, then send email to user informing them of it's completion		
 		return new ResponseEntity<String>("Error occurred while updated audit progress", HttpStatus.OK);
-	}
-
-	/**
-	 * Creates an {@linkplain AuditUpdateDto} using page audit ID and the provided page_url
-	 * 
-	 * @param pageAuditId
-	 * @return
-	 * 
-	 * @pre level != null
-	 */
-	private AuditUpdateDto buildAuditUpdatedDto(long pageAuditId, AuditLevel level) {
-		//get all audits
-		Set<Audit> audits = audit_record_service.getAllAudits(pageAuditId);
-		Set<AuditName> audit_labels = new HashSet<AuditName>();
-		audit_labels.add(AuditName.TEXT_BACKGROUND_CONTRAST);
-		audit_labels.add(AuditName.NON_TEXT_BACKGROUND_CONTRAST);
-		audit_labels.add(AuditName.TITLES);
-		audit_labels.add(AuditName.IMAGE_COPYRIGHT);
-		audit_labels.add(AuditName.IMAGE_POLICY);
-		audit_labels.add(AuditName.LINKS);
-		audit_labels.add(AuditName.ALT_TEXT);
-		audit_labels.add(AuditName.METADATA);
-		audit_labels.add(AuditName.READING_COMPLEXITY);
-		audit_labels.add(AuditName.PARAGRAPHING);
-		audit_labels.add(AuditName.ENCRYPTED);
-		//count audits for each category
-		//calculate content score
-		//calculate aesthetics score
-		//calculate information architecture score
-		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, 
-																 1, 
-																 audits, 
-																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS, audit_labels));
-		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, 
-																1, 
-																audits, 
-																audit_labels);
-		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, 
-																		1, 
-																		audits, 
-																		audit_labels);
-
-		double content_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.CONTENT);
-		double info_architecture_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.INFORMATION_ARCHITECTURE);
-		double visual_design_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.AESTHETICS);
-		double a11y_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.ACCESSIBILITY);
-
-		double data_extraction_progress = 1;
-		String message = "";
-		ExecutionStatus execution_status = ExecutionStatus.UNKNOWN;
-		if(visual_design_progress < 1 || content_progress < 1 || visual_design_progress < 1) {
-			execution_status = ExecutionStatus.IN_PROGRESS;
-		}
-		else {
-			execution_status = ExecutionStatus.COMPLETE;
-		}
-		
-		return new AuditUpdateDto(pageAuditId,
-									level,
-									content_score, 
-									content_progress, 
-									info_architecture_score, 
-									info_architecture_progress, 
-									a11y_score,
-									visual_design_score,
-									visual_design_progress,
-									data_extraction_progress, 
-									message, 
-									execution_status);
 	}
 	
 	/**
 	 * Creates an {@linkplain PageAuditDto} using page audit ID and the provided page_url
+	 * 
 	 * @param pageAuditId
+	 * 
 	 * @return
 	 */
 	private AuditUpdateDto buildPageAuditUpdatedDto(long page_audit_id) {
@@ -404,11 +285,14 @@ public class AuditController {
 		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, 
 																 1, 
 																 audits, 
-																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS, audit_labels));
+																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS, 
+																 audit_labels));
+		
 		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, 
 																1, 
 																audits, 
 																audit_labels);
+		
 		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, 
 																		1, 
 																		audits, 
@@ -419,8 +303,14 @@ public class AuditController {
 		double visual_design_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.AESTHETICS);
 		double a11y_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.ACCESSIBILITY);
 
-		double data_extraction_progress = 1;
+		double data_extraction_progress = getPageDataExtractionProgress(page_audit_id);
 		String message = "";
+		if(data_extraction_progress < 0.5) {
+			message = "Setting up browser";
+		}
+		else if(data_extraction_progress < 0.6) {
+			message = "Analyzing elements";
+		}
 		
 		ExecutionStatus execution_status = ExecutionStatus.UNKNOWN;
 		if(visual_design_progress < 1 || content_progress < 1 || visual_design_progress < 1) {
@@ -448,6 +338,7 @@ public class AuditController {
 	 * Build audit {@link AuditRecordDTO progress update} for a {@link DomainAuditRecord domain audit}
 	 * 
 	 * @param audit_msg
+	 * 
 	 * @return
 	 */
 	private AuditUpdateDto buildDomainAuditRecordDTO(long audit_record_id) {
@@ -461,18 +352,13 @@ public class AuditController {
 	    for(AuditRecord page_audit: page_audits) {
 	    	audits.addAll(audit_record_service.getAllAuditsForPageAuditRecord(page_audit.getId()));
 	    }
-	    /*
-	   Set<Audit> audits = page_audits.stream().map(page -> {
-		   return audit_record_service.getAllAuditsForPageAuditRecord(page.getId());
-	   }).flatMap(Set<Audit>::stream).collect(Collectors.toSet());
-	   */
-	 //   Set<Audit> audit_list = audit_record_service.getAllAuditsForDomainAudit(domain_audit.getId());
+	  
 	    //calculate percentage of audits that are currently complete for each category
 		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, total_pages, audits, audit_labels);
 		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, total_pages, audits, audit_labels);
 		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, total_pages, audits, audit_labels);
 		
-		double data_extraction_progress = getDataExtractionProgress(domain_audit);
+		double data_extraction_progress = getDomainDataExtractionProgress(domain_audit);
 		
 		double content_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.CONTENT);
 		double info_architecture_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.INFORMATION_ARCHITECTURE);
@@ -508,9 +394,10 @@ public class AuditController {
 	 * based on the number of journey's that are still in the CANDIDATE status vs the journeys that don't have the CANDIDATE STATUS
 	 * 
 	 * @param domain_audit
+	 * 
 	 * @return
 	 */
-	private double getDataExtractionProgress(DomainAuditRecord domain_audit) {
+	private double getDomainDataExtractionProgress(DomainAuditRecord domain_audit) {
 		assert domain_audit != null;
 		
 		int candidate_count = audit_record_service.getNumberOfJourneysWithStatus(domain_audit.getId(), JourneyStatus.CANDIDATE);
@@ -522,6 +409,50 @@ public class AuditController {
 		
 		return (double)(total_journeys - candidate_count) / (double)total_journeys;
 
+	}
+	
+	/**
+	 * Retrieves journeys from the domain audit and calculates a value between 0 and 1 that indicates the progress
+	 * based on the number of journey's that are still in the CANDIDATE status vs the journeys that don't have the CANDIDATE STATUS
+	 * 
+	 * NOTE : Progress is based on a magic number(10000). Be aware that all progress will be based on an assumed maximum element 
+	 *        count of 1000
+	 * 
+	 * @param audit_record_id
+	 * 
+	 * @return progress percentage as a value between 0 and 1
+	 */
+	private double getPageDataExtractionProgress(long audit_record_id) {		
+		double milestone_count = 0;
+		
+		PageState page = audit_record_service.findPage(audit_record_id);
+		
+		int audit_count = audit_record_service.getAllAudits(audit_record_id).size();
+		//if the audit_record has audits return 1
+		if(audit_count > 0) {
+			return 1.0;
+		}
+		
+		//if audit_record has page associated with it add 1 point
+		if(page != null) {
+			milestone_count += 1;
+		}
+		else {
+			return 0.0;
+		}
+		
+		int element_count = page_state_service.getElementStateCount(page.getId());
+		
+		//if the associated page has elements add 1000/element_count
+		int max_elements = 1000;
+		if(element_count > 0) {
+			if(element_count > max_elements) {
+				max_elements = element_count;
+			}
+			milestone_count += max_elements / (double)element_count;
+		}
+		
+		return milestone_count / 2.0;
 	}
 
 }
