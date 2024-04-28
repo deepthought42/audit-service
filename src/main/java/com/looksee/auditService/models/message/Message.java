@@ -44,7 +44,7 @@ public abstract class Message {
 	protected void setAccountId(long account_id) {
 		this.accountId = account_id;
 	}
-
+	
 	public String getMessageId() {
 		return messageId;
     }

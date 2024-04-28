@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.looksee.auditService.models.Audit;
+import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.AuditScore;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.ReadingComplexityIssueMessage;
@@ -178,6 +179,21 @@ public class AuditUtils {
 	@Deprecated
 	public static boolean isPageAuditComplete(PageAuditRecord audit_record) {
 		
+		return audit_record.getAestheticAuditProgress() >= 1 
+			&& audit_record.getContentAuditProgress() >= 1
+			&& audit_record.getInfoArchitechtureAuditProgress() >= 1;
+	}
+
+	/**
+	 * Checks if {@link AuditRecord} is complete by checking if each audit category is complete 
+	 * with a progress value of 1
+	 * 
+	 * @param audit_record {@link AuditRecord}
+	 * 
+	 * @return true if aesthetic audit progress, content audit progress, and information architecture
+	 *  audit progress are all greater than or equal to 1, otherwise false
+	 */
+	public static boolean isAuditComplete(AuditRecord audit_record) {
 		return audit_record.getAestheticAuditProgress() >= 1 
 			&& audit_record.getContentAuditProgress() >= 1
 			&& audit_record.getInfoArchitechtureAuditProgress() >= 1;

@@ -1,22 +1,25 @@
 package com.looksee.auditService.models.message;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class PageAuditMessage extends Message {
-	private long page_audit_id;
+	@Getter
+	@Setter
+	private long pageAuditId;
+
+	@Getter
+	@Setter
+	private long pageId;
 	
 	public PageAuditMessage() {}
 	
 	public PageAuditMessage(long account_id,
-							long page_audit_id
+							long page_audit_id, 
+							long page_id
 	) {
 		super(account_id);
 		setPageAuditId(page_audit_id);
-	}
-
-	public long getPageAuditId() {
-		return page_audit_id;
-	}
-
-	public void setPageAuditId(long page_audit_id) {
-		this.page_audit_id = page_audit_id;
-	}
+		setPageId(page_id);
+	}	
 }

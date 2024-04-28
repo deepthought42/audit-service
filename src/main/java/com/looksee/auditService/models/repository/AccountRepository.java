@@ -61,8 +61,8 @@ public interface AccountRepository extends Neo4jRepository<Account, Long> {
 	@Query("MATCH (t:Account) WITH t MATCH (a:AuditRecord) WHERE id(a)=$audit_record_id AND id(t)=$account_id MERGE (t)-[r:HAS]->(a) RETURN a")
 	public AuditRecord addAuditRecord(@Param("account_id") long account_id, @Param("audit_record_id") long audit_record_id);
 
-	@Query("MATCH (account:Account)-[]->(audit_record:AuditRecord) WHERE id(audit_record)=$audit_record_id RETURN account")
-	public Set<Account> findAllForAuditRecord(@Param("audit_record_id") long id);
+	@Query("MATCH (account:Account)-[]->(audit_record:AuditRecord) WHERE id(audit_record)=$audit_record_id RETURN account LIMIT 1")
+	public Account findAllForAuditRecord(@Param("audit_record_id") long id);
 
 	@Query("MATCH (account:Account)-[]->(audit_record:PageAuditRecord) WHERE id(account)=$account_id RETURN audit_record ORDER BY audit_record.created_at DESC LIMIT 5")
 	public Set<PageAuditRecord> findMostRecentAuditsByAccount(long account_id);

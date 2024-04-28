@@ -4,15 +4,33 @@ package com.looksee.auditService.models.message;
 import com.looksee.auditService.models.enums.BrowserType;
 import com.looksee.auditService.models.journeys.Journey;
 
+import lombok.Getter;
+import lombok.Setter;
+
 
 /**
  * 
  */
-public class JourneyCandidateMessage extends DomainAuditMessage {
+/**
+ * 
+ */
+public class JourneyCandidateMessage extends Message {
 
-	private long map_id;
+	@Getter
+	@Setter
+	private long mapId;
+
+	@Getter
+	@Setter
 	private Journey journey;
+
+	@Getter
+	@Setter
 	private BrowserType browser;
+	
+	@Getter
+	@Setter
+	private long auditRecordId;
 	
 	public JourneyCandidateMessage() {}
 	
@@ -22,43 +40,18 @@ public class JourneyCandidateMessage extends DomainAuditMessage {
 								   long audit_record_id, 
 								   long map_id)
 	{
-		super(account_id, audit_record_id);
+		super(account_id);
 		setJourney(journey);
-		//setSteps(steps);
 		setBrowser(browser_type);
 		setMapId(map_id);
+		setAuditRecordId(audit_record_id);
 	}
 
 	public JourneyCandidateMessage clone(){
 		return new JourneyCandidateMessage(getJourney(), 
 								  getBrowser(), 
 								  getAccountId(), 
-								  getDomainAuditRecordId(),
+								  getAuditRecordId(),
 								  getMapId());
 	}
-
-	public BrowserType getBrowser() {
-		return browser;
-	}
-
-	public void setBrowser(BrowserType browser) {
-		this.browser = browser;
-	}
-
-	public Journey getJourney() {
-		return journey;
-	}
-
-	public void setJourney(Journey journey) {
-		this.journey = journey;
-	}
-
-	public long getMapId() {
-		return map_id;
-	}
-
-	public void setMapId(long map_id) {
-		this.map_id = map_id;
-	}
-	
 }

@@ -270,7 +270,7 @@ public class AuditRecordService {
 	}
 
 	public void addPageToAuditRecord(long audit_record_id, long page_state_id) {
-		audit_record_repo.addPageToAuditRecord( audit_record_id, page_state_id );		
+		audit_record_repo.addPageToAuditRecord( audit_record_id, page_state_id );
 	}
 
 	public long getIssueCountBySeverity(long id, String severity) {
@@ -281,11 +281,18 @@ public class AuditRecordService {
 		return audit_record_repo.getPageAuditRecordCount(domain_audit_id);
 	}
 
-	public Set<Audit> getAllAudits(long audit_record_id) {
-		return audit_repo.getAllAudits(audit_record_id);
+	/**
+	 * Retrieves all {@link Audit audits} associated with the given 
+	 * 	{@link PageAuditRecord audit_record}
+	 * 
+	 * @param id {@link PageAuditRecord} ID value
+	 * @return
+	 */
+	public Set<Audit> getAllAudits(long id) {
+		return audit_repo.getAllAudits(id);
 	}
 
-	public boolean isDomainAuditComplete(AuditRecord audit_record) {		
+	public boolean isDomainAuditComplete(AuditRecord audit_record) {
 		//audit_record should now have a domain audit record
 		//get all page audit records for domain audit
 
@@ -333,12 +340,12 @@ public class AuditRecordService {
 	 * @param message
 	 * @return
 	 */
-	public AuditRecord updateAuditProgress(long auditRecordId, 
-										   AuditCategory category, 
-										   long account_id, 
-										   long domain_id, 
-										   double progress, 
-										   String message) 
+	public AuditRecord updateAuditProgress(long auditRecordId,
+										   AuditCategory category,
+										   long account_id,
+										   long domain_id,
+										   double progress,
+										   String message)
 	{
 		AuditRecord audit_record = findById(auditRecordId).get();
 		audit_record.setDataExtractionProgress(1.0);
@@ -346,18 +353,42 @@ public class AuditRecordService {
 
 		if(AuditCategory.CONTENT.equals(category)) {
 			audit_record.setContentAuditProgress( progress );
-			audit_record.setContentAuditMsg( message);
 		}
 		else if(AuditCategory.AESTHETICS.equals(category)) {
 			audit_record.setAestheticAuditProgress( progress);
-			audit_record.setAestheticMsg(message);
 		}
 		else if(AuditCategory.INFORMATION_ARCHITECTURE.equals(category)) {
 			audit_record.setInfoArchitectureAuditProgress( progress );
-			audit_record.setInfoArchMsg(message);
 		}
 		
 		return save(audit_record, account_id, domain_id);
+	}
+
+	/**
+	 * Update the progress for the appropriate {@linkplain AuditCategory}
+	 * @param auditRecordId
+	 * @param category
+	 * @param account_id
+	 * @param domain_id
+	 * @param progress
+	 * @param message
+	 * @return
+	 */
+	public void updateAuditProgress(long audit_record_id, 
+										   double content_progress, 
+										   double info_architecture_progress,
+										   double aesthetic_progress,
+										   double data_extraction_progress)
+	{
+		AuditRecord audit_record = findById(audit_record_id).get();
+		audit_record.setDataExtractionProgress(data_extraction_progress);
+		audit_record.setStatus(ExecutionStatus.RUNNING_AUDITS);
+
+		audit_record.setContentAuditProgress( content_progress );
+		audit_record.setAestheticAuditProgress( aesthetic_progress);
+		audit_record.setInfoArchitectureAuditProgress( info_architecture_progress );
+		
+		audit_record_repo.updateProgress(audit_record_id, content_progress, info_architecture_progress, aesthetic_progress, data_extraction_progress);
 	}
 
 	/**
@@ -386,6 +417,18 @@ public class AuditRecordService {
 	public Set<Audit> getAllAuditsForDomainAudit(long domain_audit_record_id) {
 		return audit_repo.getAllAuditsForDomainAudit(domain_audit_record_id);
 	}
+
+    public boolean updateAuditScores(long audit_record_id, 
+								  double content_score, 
+								  double info_architecture_score,
+            					  double aesthetic_score) {
+		try{
+       		audit_record_repo.updateScores(audit_record_id, content_score, info_architecture_score, aesthetic_score);
+			return true;
+		}catch(Exception e){
+			return false;
+		}
+    }
 
 	public int getNumberOfJourneysWithStatus(long domain_audit_id, JourneyStatus candidate) {
 		return audit_record_repo.getNumberOfJourneysWithStatus(domain_audit_id, candidate.toString());

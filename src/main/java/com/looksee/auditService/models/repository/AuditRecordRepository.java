@@ -9,6 +9,7 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.PageAuditRecord;
@@ -81,13 +82,17 @@ public interface AuditRecordRepository extends Neo4jRepository<AuditRecord, Long
 	@Query("MATCH (a:PageAuditRecord)-[:FOR]->(ps:PageState) WHERE id(ps)=$id RETURN a ORDER BY a.created_at DESC LIMIT 1")
 	public PageAuditRecord getAuditRecord(@Param("id") long id);
 
-	@Query("MATCH (domain_audit:DomainAuditRecord)-[:CONTAINS]->(map:DomainMap) WHERE id(domain_audit)=$audit_record_id MATCH(map)-[:CONTAINS]->(journey:Journey{status:$status}) RETURN COUNT(journey)")
-	public int getNumberOfJourneysWithStatus(@Param("audit_record_id") long audit_record_id, @Param("status") String status);
-	
-	@Query("MATCH (domain_audit:DomainAuditRecord)-[:CONTAINS]->(map:DomainMap) WHERE id(domain_audit)=$audit_record_id MATCH(map)-[:CONTAINS]->(journey:Journey) RETURN COUNT(journey)")
-	public int getNumberOfJourneys(@Param("audit_record_id") long audit_record_id);
-	
-	@Query("MATCH (page_audit:PageAuditRecord)-[:FOR]->(page_state:PageState) WHERE id(page_audit)=$id RETURN page_state LIMIT 1")
-	public PageState getPageStateForAuditRecord(@Param("id") long audit_record_id);
+	@Query("MATCH (a:AuditRecord) WHERE id(a)=$audit_record_id SET a.contentProgress=$content_progress, a.infoArchitectureProgress=$ia_progress, a.aestheticProgress=$aesthetic_progress, a.dataExtractionProgress=$data_progress RETURN a")
+    public void updateProgress(@Param("audit_record_id") long audit_record_id, 
+								@Param("content_progress") double content_progress, 
+								@Param("ia_progress") double info_architecture_progress,
+								@Param("aesthentic_progress") double aesthetic_progress, 
+								@Param("data_progress") double data_extraction_progress);
+
+	@Query("MATCH (a:AuditRecord) WHERE id(a)=$audit_record_id SET a.contentScore=$content_score, a.infoArchitectureScore=$ia_score, a.aestheticScore=$aesthetic_score, a.dataExtractionProgress=$data_progress RETURN a")
+	public void updateScores(@Param("audit_record_id") long audit_record_id, 
+							 @Param("content_score") double content_score, 
+							 @Param("info_architecture_score") double info_architecture_score,
+							 @Param("aesthetic_score") double aesthetic_score);
 
 }
