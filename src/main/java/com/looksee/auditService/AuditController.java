@@ -1,9 +1,6 @@
 package com.looksee.auditService;
 
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -32,9 +29,11 @@ import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageState;
 import com.looksee.auditService.models.dto.AuditUpdateDto;
+import com.looksee.auditService.models.dto.PageAuditDto;
 import com.looksee.auditService.models.enums.AuditCategory;
 import com.looksee.auditService.models.enums.AuditLevel;
 import com.looksee.auditService.models.enums.AuditName;
+import com.looksee.auditService.models.enums.ExecutionStatus;
 import com.looksee.auditService.models.enums.JourneyStatus;
 import com.looksee.auditService.models.message.AuditProgressUpdate;
 import com.looksee.auditService.models.message.DiscardedJourneyMessage;
@@ -47,8 +46,6 @@ import com.looksee.auditService.services.DomainService;
 import com.looksee.auditService.services.MessageBroadcaster;
 import com.looksee.auditService.services.PageStateService;
 import com.looksee.auditService.services.SendGridMailService;
-import com.looksee.auditService.models.dto.PageAuditDto;
-import com.looksee.auditService.models.enums.ExecutionStatus;
 import com.looksee.utils.AuditUtils;
 
 @RestController
@@ -90,23 +87,23 @@ public class AuditController {
 	    	AuditProgressUpdate audit_msg = mapper.readValue(target, AuditProgressUpdate.class);
 	    	log.warn("audit progress update message detected");
 	    	//get AuditRecord from database
-	    	Optional<AuditRecord> audit_record = audit_record_service.findById(audit_msg.getAuditRecordId());
+	    	Optional<AuditRecord> audit_record = audit_record_service.findById(audit_msg.getPageAuditId());
 	    	
 	    	if(audit_record.isPresent() && audit_record.get() instanceof PageAuditRecord) {
 	    		log.warn("PageAuditRecord found");
 	    		//build page audit progress
-	    		AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getAuditRecordId());
+	    		AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getPageAuditId());
 				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
 
 	    		//if domain audit is complete then send email
 	    		if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
 	    			log.warn("sending email to user");
 	    	    	//send email that audit is complete
-	    			//Account account = account_service.findById(audit_msg.getAccountId()).get();
-	    			Set<Account> accounts = account_service.findForAuditRecord(audit_msg.getAuditRecordId());
-	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getAuditRecordId());
+	    			Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    			//Account account = account_service.findForAuditRecord(audit_msg.getPageAuditId());
+	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getPageAuditId());
 	    		    
-	    		    for(Account account: accounts) {
+					if(account != null){
 		    			log.warn("sending email to user = "+account.getEmail());
 		    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
 		    													  domain.getUrl(), 
@@ -119,20 +116,20 @@ public class AuditController {
 	    	else if(audit_record.isPresent() && audit_record.get() instanceof DomainAuditRecord) {
 	    		log.warn("DomainAuditRecord found");
 	    		//build domain audit progress
-	    		AuditUpdateDto audit_update = buildDomainAuditRecordDTO(audit_msg.getAuditRecordId());
+	    		AuditUpdateDto audit_update = buildDomainAuditRecordDTO(audit_msg.getPageAuditId());
 				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
 
 	    		//if domain audit is complete then send email
 	    		if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
 	    			log.warn("sending email to user");
 	    	    	//send email that audit is complete
-	    			//Account account = account_service.findById(audit_msg.getAccountId()).get();
-	    			Set<Account> accounts = account_service.findForAuditRecord(audit_msg.getAuditRecordId());
-	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getAuditRecordId());
-	    		    for(Account account: accounts) {
+	    			Account account = account_service.findById(audit_msg.getAccountId()).get();
+	    			//Account account = account_service.findForAuditRecord(audit_msg.getPageAuditId());
+	    		    Domain domain = domain_service.findByAuditRecord(audit_msg.getPageAuditId());
+	    		    if(account != null){
 		    			log.warn("sending email to user = "+account.getEmail());
-		    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(), 
-		    													  domain.getUrl(), 
+		    			mail_service.sendDomainAuditCompleteEmail(account.getEmail(),
+		    													  domain.getUrl(),
 		    													  domain.getId());
 	    		    }
 	    		}
@@ -153,7 +150,7 @@ public class AuditController {
 	    ********************************************************/
 	    //if message is audit message then update page audit
 	    try {
-		    PageAuditProgressMessage audit_msg = mapper.readValue(target, PageAuditProgressMessage.class);			
+		    PageAuditProgressMessage audit_msg = mapper.readValue(target, PageAuditProgressMessage.class);
 		   
 		    //update audit record
 		    log.warn("finding PageAudit by id = "+audit_msg.getPageAuditId());
@@ -185,7 +182,7 @@ public class AuditController {
 					}
 				}
 				else {
-					PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());							
+					PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());
 					Account account = account_service.findById(audit_msg.getAccountId()).get();
 					log.warn("sending email to account :: "+account.getEmail());
 					mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
@@ -218,9 +215,8 @@ public class AuditController {
 		    JourneyCandidateMessage journey_candidate_msg = mapper.readValue(target, JourneyCandidateMessage.class);
 		    log.warn("Received JourneyCandidateMessage!!!! Should this be happening?");
 		    
-			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg.getDomainAuditRecordId());
-		    //PageAuditDto audit_update = builPagedAuditdDto(journey_candidate_msg.getDomainAuditRecordId(), target);
-			pusher.sendAuditUpdate(journey_candidate_msg.getDomainAuditRecordId()+"", audit_update);
+			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg.getAuditRecordId());
+			pusher.sendAuditUpdate(journey_candidate_msg.getAuditRecordId()+"", audit_update);
 
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
@@ -425,7 +421,7 @@ public class AuditController {
 	 * 
 	 * @return progress percentage as a value between 0 and 1
 	 */
-	private double getPageDataExtractionProgress(long audit_record_id) {		
+	private double getPageDataExtractionProgress(long audit_record_id) {
 		double milestone_count = 0;
 		
 		PageState page = audit_record_service.findPage(audit_record_id);
@@ -457,5 +453,4 @@ public class AuditController {
 		
 		return milestone_count / 2.0;
 	}
-
 }
