@@ -13,7 +13,6 @@ import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.AuditRecord;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.PageAuditRecord;
-import com.looksee.auditService.models.PageState;
 
 import io.github.resilience4j.retry.annotation.Retry;
 
@@ -95,4 +94,9 @@ public interface AuditRecordRepository extends Neo4jRepository<AuditRecord, Long
 							 @Param("info_architecture_score") double info_architecture_score,
 							 @Param("aesthetic_score") double aesthetic_score);
 
+	@Query("MATCH (domain_audit:DomainAuditRecord)-[:CONTAINS]->(map:DomainMap) WHERE id(domain_audit)=$audit_record_id MATCH(map)-[:CONTAINS]->(journey:Journey{status:$status}) RETURN COUNT(journey)")
+	public int getNumberOfJourneysWithStatus(@Param("audit_record_id") long audit_record_id, @Param("status") String status);
+	
+	@Query("MATCH (domain_audit:DomainAuditRecord)-[:CONTAINS]->(map:DomainMap) WHERE id(domain_audit)=$audit_record_id MATCH(map)-[:CONTAINS]->(journey:Journey) RETURN COUNT(journey)")
+	public int getNumberOfJourneys(@Param("audit_record_id") long audit_record_id);
 }

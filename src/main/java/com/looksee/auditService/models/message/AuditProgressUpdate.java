@@ -43,7 +43,9 @@ public class AuditProgressUpdate extends Message {
 		super(account_id);
 		setProgress(progress);
 		setMessage(message);
-		setAuditRecordId(audit_record_id);
+		setCategory(category);
+		setLevel(level);
+		setPageAuditId(page_audit_id);
 	}
 
 }

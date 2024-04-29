@@ -16,7 +16,6 @@ import com.looksee.auditService.models.DesignSystem;
 import com.looksee.auditService.models.Domain;
 import com.looksee.auditService.models.DomainAuditRecord;
 import com.looksee.auditService.models.Element;
-import com.looksee.auditService.models.ElementState;
 import com.looksee.auditService.models.Form;
 import com.looksee.auditService.models.PageAuditRecord;
 import com.looksee.auditService.models.PageLoadAnimation;
