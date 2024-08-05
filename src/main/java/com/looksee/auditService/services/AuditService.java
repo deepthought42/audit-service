@@ -17,19 +17,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.auditService.models.enums.AuditName;
-import com.looksee.auditService.models.enums.AuditSubcategory;
-import com.looksee.auditService.models.enums.ObservationType;
-import com.looksee.auditService.models.repository.AuditRepository;
 import com.looksee.auditService.models.Audit;
 import com.looksee.auditService.models.ElementState;
 import com.looksee.auditService.models.ElementStateIssueMessage;
 import com.looksee.auditService.models.ImageElementState;
-import com.looksee.auditService.models.PageState;
-import com.looksee.auditService.models.PageStateAudits;
 import com.looksee.auditService.models.SimpleElement;
-import com.looksee.auditService.models.SimplePage;
 import com.looksee.auditService.models.UXIssueMessage;
+import com.looksee.auditService.models.enums.AuditName;
+import com.looksee.auditService.models.enums.AuditSubcategory;
+import com.looksee.auditService.models.enums.ObservationType;
+import com.looksee.auditService.models.repository.AuditRepository;
 
 import io.github.resilience4j.retry.annotation.Retry;
 
@@ -104,50 +101,6 @@ public class AuditService {
 	}
 	
 	/**
-	 * using a list of audits, sorts the list by page and packages results into list 
-	 * 	of {@linkplain PageStateAudits}
-	 * 
-	 * @param audits
-	 * @return
-	 */
-	public List<PageStateAudits> groupAuditsByPage(Set<Audit> audits) {
-		Map<String, Set<Audit>> audit_url_map = new HashMap<>();
-		
-		for(Audit audit : audits) {
-			//if url of pagestate already exists 
-			if(audit_url_map.containsKey(audit.getUrl())) {
-				audit_url_map.get(audit.getUrl()).add(audit);
-			}
-			else {
-				Set<Audit> page_audits = new HashSet<>();
-				page_audits.add(audit);
-				
-				audit_url_map.put(audit.getUrl(), page_audits);
-			}
-		}
-		
-		List<PageStateAudits> page_audits = new ArrayList<>();
-		for(String url : audit_url_map.keySet()) {
-			//load page state by url
-			PageState page_state = page_state_service.findByUrl(url);
-			SimplePage simple_page = new SimplePage(
-											page_state.getUrl(), 
-											page_state.getViewportScreenshotUrl(), 
-											page_state.getFullPageScreenshotUrlOnload(), 
-											page_state.getFullPageScreenshotUrlComposite(), 
-											page_state.getFullPageWidth(),
-											page_state.getFullPageHeight(),
-											page_state.getSrc(), 
-											page_state.getKey(), page_state.getId());
-			PageStateAudits page_state_audits = new PageStateAudits(simple_page, audit_url_map.get(url));
-			page_audits.add( page_state_audits ) ;
-		}
-		
-		return page_audits;
-	}
-	
-	
-	/**
 	 * Generates a {@linkplain Map} with element keys for it's keys and a set of issue keys associated 
 	 * 	with each element as the values
 	 * 
@@ -156,7 +109,7 @@ public class AuditService {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public Map<String, Set<String>> generateElementIssuesMap(Set<Audit> audits)  {		
+	public Map<String, Set<String>> generateElementIssuesMap(Set<Audit> audits)  {
 		Map<String, Set<String>> element_issues = new HashMap<>();
 				
 		for(Audit audit : audits) {	
