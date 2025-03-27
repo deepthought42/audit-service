@@ -22,10 +22,11 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /target/
+/node_modules/
+/.vscode/
 
-*.properties
-
-src/main/resources/GCP-MyFirstProject-1c31159db52c.json
+*.prod
+*.stage
 
 .settings/
 
@@ -34,7 +35,3 @@ src/main/resources/GCP-MyFirstProject-1c31159db52c.json
 GCP-MyFirstProject-1c31159db52c.json
 
 gmail_credentials.json
-
-src/main/resources/auth0.properties.prod
-
-src/main/resources/application.properties.prod
