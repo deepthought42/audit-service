@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/deepthought42/audit-service/compare/v1.0.0...v1.0.1) (2025-05-01)
+
+
+### Bug Fixes
+
+* commented out gcp credentials setting ([e863445](https://github.com/deepthought42/audit-service/commit/e863445ea8fcc456a8886b828691efd1ddacc7da))
+
 # 1.0.0 (2025-03-27)
 
 
