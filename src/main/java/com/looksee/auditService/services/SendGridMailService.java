@@ -28,7 +28,7 @@ public class SendGridMailService {
         sendMail(to, from, subject, msg);
     }
     
-    public void sendMail(Email to, Email from, String subject, String msg) {      
+    public void sendMail(Email to, Email from, String subject, String msg) {
         Content content = new Content("text/html", msg);
         Mail mail = new Mail(from, subject, to, content);
 
