@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/deepthought42/audit-service/compare/v1.0.1...v1.0.2) (2025-05-02)
+
+
+### Bug Fixes
+
+* removed sendgrid ([91ca801](https://github.com/deepthought42/audit-service/commit/91ca8012b3622c94a704c0bb28d5ecc3fb86bbe5))
+
 ## [1.0.1](https://github.com/deepthought42/audit-service/compare/v1.0.0...v1.0.1) (2025-05-01)
 
 
