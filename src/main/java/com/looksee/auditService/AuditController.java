@@ -45,7 +45,6 @@ import com.looksee.auditService.services.AuditRecordService;
 import com.looksee.auditService.services.DomainService;
 import com.looksee.auditService.services.MessageBroadcaster;
 import com.looksee.auditService.services.PageStateService;
-import com.looksee.auditService.services.SendGridMailService;
 import com.looksee.utils.AuditUtils;
 
 @RestController
@@ -63,9 +62,6 @@ public class AuditController {
 	
 	@Autowired
 	private PageStateService page_state_service;
-	
-	@Autowired
-	private SendGridMailService mail_service;
 	
 	@Autowired
 	private MessageBroadcaster pusher;
@@ -107,9 +103,9 @@ public class AuditController {
 							Domain domain = domain_service.findByAuditRecord(domain_audit_record_opt.get().getId());
 
 							log.warn("sending email to user = "+account.getEmail());
-							mail_service.sendDomainAuditCompleteEmail(account.getEmail(),
-																	domain.getUrl(),
-																	domain.getId());
+							//mail_service.sendDomainAuditCompleteEmail(account.getEmail(),
+							//								domain.getUrl(),
+							//								domain.getId());
 						}
 					}
 				}
@@ -124,9 +120,9 @@ public class AuditController {
 						
 						if(account != null){
 							log.warn("sending email to user = "+account.getEmail());
-							mail_service.sendPageAuditCompleteEmail(account.getEmail(), 
-																	  page_state.getUrl(), 
-																	  page_state.getId());
+							//mail_service.sendPageAuditCompleteEmail(account.getEmail(), 
+																	  //page_state.getUrl(), 
+																	  //page_state.getId());
 						}
 					}
 				}
@@ -172,14 +168,14 @@ public class AuditController {
 						Domain domain = domain_service.findByAuditRecord(audit_id);
 						Account account = account_service.findById(audit_msg.getAccountId()).get();
 						log.warn("sending email to account :: "+audit_id);
-						mail_service.sendDomainAuditCompleteEmail(account.getEmail(), domain.getUrl(), domain.getId());
+						//mail_service.sendDomainAuditCompleteEmail(account.getEmail(), domain.getUrl(), domain.getId());
 					}
 				}
 				else {
 					PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());
 					Account account = account_service.findById(audit_msg.getAccountId()).get();
 					log.warn("sending email to account :: "+account.getEmail());
-					mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
+					//mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
 				}
 			}
 			

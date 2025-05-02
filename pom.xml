@@ -291,13 +291,7 @@
 		    <artifactId>whelk-flesch-kincaid</artifactId>
 		    <version>0.1.6</version>
 		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/com.sendgrid/sendgrid-java -->
-		<dependency>
-		    <groupId>com.sendgrid</groupId>
-		    <artifactId>sendgrid-java</artifactId>
-		    <version>4.7.2</version>
-		</dependency>
+
 	  </dependencies>
 
 	  <build>
