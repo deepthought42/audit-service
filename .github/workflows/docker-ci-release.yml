@@ -3,7 +3,7 @@ name: Build and Release
 on:
   pull_request:
     branches:
-      - master
+      - main
     types: [closed]
     paths-ignore:
       - '**.md'
