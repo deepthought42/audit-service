@@ -21,32 +21,35 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.auditService.mapper.Body;
-import com.looksee.auditService.models.Account;
-import com.looksee.auditService.models.Audit;
-import com.looksee.auditService.models.AuditRecord;
-import com.looksee.auditService.models.Domain;
-import com.looksee.auditService.models.DomainAuditRecord;
-import com.looksee.auditService.models.PageAuditRecord;
-import com.looksee.auditService.models.PageState;
-import com.looksee.auditService.models.dto.AuditUpdateDto;
-import com.looksee.auditService.models.dto.PageAuditDto;
-import com.looksee.auditService.models.enums.AuditCategory;
-import com.looksee.auditService.models.enums.AuditLevel;
-import com.looksee.auditService.models.enums.AuditName;
-import com.looksee.auditService.models.enums.ExecutionStatus;
-import com.looksee.auditService.models.enums.JourneyStatus;
-import com.looksee.auditService.models.message.AuditProgressUpdate;
-import com.looksee.auditService.models.message.DiscardedJourneyMessage;
-import com.looksee.auditService.models.message.JourneyCandidateMessage;
-import com.looksee.auditService.models.message.PageAuditProgressMessage;
-import com.looksee.auditService.models.message.VerifiedJourneyMessage;
-import com.looksee.auditService.services.AccountService;
-import com.looksee.auditService.services.AuditRecordService;
-import com.looksee.auditService.services.DomainService;
-import com.looksee.auditService.services.MessageBroadcaster;
-import com.looksee.auditService.services.PageStateService;
+import com.looksee.models.Account;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.Domain;
+import com.looksee.models.DomainAuditRecord;
+import com.looksee.models.PageAuditRecord;
+import com.looksee.models.PageState;
+import com.looksee.models.dto.AuditUpdateDto;
+import com.looksee.models.dto.PageAuditDto;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.enums.ExecutionStatus;
+import com.looksee.models.enums.JourneyStatus;
+import com.looksee.models.message.AuditProgressUpdate;
+import com.looksee.models.message.DiscardedJourneyMessage;
+import com.looksee.models.message.JourneyCandidateMessage;
+import com.looksee.models.message.PageAuditProgressMessage;
+import com.looksee.models.message.VerifiedJourneyMessage;
+import com.looksee.services.AccountService;
+import com.looksee.services.AuditRecordService;
+import com.looksee.services.DomainService;
+import com.looksee.services.MessageBroadcaster;
+import com.looksee.services.PageStateService;
 import com.looksee.utils.AuditUtils;
 
+/**
+ * Controller for the audit service
+ */
 @RestController
 public class AuditController {
 	private static Logger log = LoggerFactory.getLogger(AuditController.class);
@@ -66,6 +69,24 @@ public class AuditController {
 	@Autowired
 	private MessageBroadcaster pusher;
 	
+	/**
+	 * Receives a message from the message broker and processes it
+	 * 
+	 * @param body the body of the message containing the audit progress update
+	 * 
+	 * @return ResponseEntity<String> a response entity with a success message
+	 * 
+	 * @throws JsonMappingException if there is an error mapping the JSON to the object
+	 * @throws JsonProcessingException if there is an error processing the JSON
+	 * @throws ExecutionException if there is an error executing the message
+	 * @throws InterruptedException if the thread is interrupted
+	 */
+	@Operation(summary = "Receive audit progress message", description = "Receives a message from the message broker and processes audit progress updates")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Message processed successfully"),
+		@ApiResponse(responseCode = "400", description = "Bad request - invalid message format"),
+		@ApiResponse(responseCode = "500", description = "Internal server error")
+	})
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	public ResponseEntity<String> receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException {
 
@@ -190,7 +211,7 @@ public class AuditController {
 	    }
 
 	    try {
-		    JourneyCandidateMessage journey_candidate_msg = mapper.readValue(target, JourneyCandidateMessage.class);		    
+		    JourneyCandidateMessage journey_candidate_msg = mapper.readValue(target, JourneyCandidateMessage.class);
 			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg.getAuditRecordId());
 			pusher.sendAuditUpdate(journey_candidate_msg.getAuditRecordId()+"", audit_update);
 

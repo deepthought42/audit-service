@@ -292,9 +292,14 @@
 		    <version>0.1.6</version>
 		</dependency>
 
-	  </dependencies>
+		<dependency>
+            <groupId>com.looksee</groupId>
+            <artifactId>core</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+	</dependencies>
 
-	  <build>
+	<build>
 	    <plugins>
 	      <plugin>
 	        <groupId>org.springframework.boot</groupId>
@@ -353,5 +358,10 @@
 		    <id>atlassian-public</id>
 		    <url>https://packages.atlassian.com/maven/repository/public</url>
 		</repository>
+		<repository>
+            <id>github</id>
+            <name>GitHub LookseeCore Package</name>
+            <url>https://maven.pkg.github.com/deepthought42/LookseeCore</url>
+        </repository>
     </repositories>
 </project>
