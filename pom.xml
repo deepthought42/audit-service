@@ -293,10 +293,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.deepthought42</groupId>
-			<artifactId>LookseeCore</artifactId>
-			<version>1.0.0</version>
-		</dependency>
+            <groupId>com.looksee</groupId>
+            <artifactId>core</artifactId>
+            <version>0.0.1</version>
+        </dependency>
 	</dependencies>
 
 	<build>
