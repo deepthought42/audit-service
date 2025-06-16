@@ -292,9 +292,14 @@
 		    <version>0.1.6</version>
 		</dependency>
 
-	  </dependencies>
+		<dependency>
+			<groupId>com.github.deepthought42</groupId>
+			<artifactId>LookseeCore</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+	</dependencies>
 
-	  <build>
+	<build>
 	    <plugins>
 	      <plugin>
 	        <groupId>org.springframework.boot</groupId>
