@@ -46,6 +46,9 @@ import com.looksee.services.DomainService;
 import com.looksee.services.MessageBroadcaster;
 import com.looksee.services.PageStateService;
 import com.looksee.utils.AuditUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 /**
  * Controller for the audit service
@@ -225,7 +228,7 @@ public class AuditController {
 	    try {
 	    	VerifiedJourneyMessage verified_journey_msg = mapper.readValue(target, VerifiedJourneyMessage.class);
 		    
-			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(verified_journey_msg.getDomainAuditRecordId());
+			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(verified_journey_msg.getAuditRecordId());
 			pusher.sendAuditUpdate(verified_journey_msg.getDomainAuditRecordId()+"", audit_update);
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
@@ -276,10 +279,10 @@ public class AuditController {
 		//calculate content score
 		//calculate aesthetics score
 		//calculate information architecture score
-		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS, 
-																 1, 
-																 audits, 
-																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS, 
+		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS,
+																 1,
+																 audits,
+																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS,
 																 audit_labels));
 		
 		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, 

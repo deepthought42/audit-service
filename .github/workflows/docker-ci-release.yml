@@ -90,6 +90,8 @@ jobs:
     # Run only when PR is merged to master
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
 
@@ -103,7 +105,7 @@ jobs:
           distribution: 'adopt'
           java-version: '17'
       
-      - name: Test with Maven
+      - name: Maven install
         run: mvn install -DskipTests
 
       - name: Create GitHub Release
