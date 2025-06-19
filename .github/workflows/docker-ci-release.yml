@@ -25,8 +25,18 @@ jobs:
           distribution: 'adopt'
           java-version: '17'
 
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Test with Maven
-        run: mvn test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+        run: mvn test -Dmaven.wagon.http.pool=false --settings .github/workflows/settings.xml
 
   bump-version:
     needs: test
@@ -44,6 +54,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -104,9 +115,19 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '17'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       
       - name: Maven install
-        run: mvn install -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+        run: mvn install -DskipTests -Dmaven.wagon.http.pool=false --settings .github/workflows/settings.xml
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

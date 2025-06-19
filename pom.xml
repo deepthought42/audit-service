@@ -292,10 +292,13 @@
 		    <version>0.1.6</version>
 		</dependency>
 
+		<!-- Alternative: Direct JAR from GitHub release (uncomment if Maven repo doesn't work) -->
 		<dependency>
             <groupId>com.looksee</groupId>
             <artifactId>core</artifactId>
-            <version>0.0.2</version>
+            <version>0.1.5</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/core-0.1.5.jar</systemPath>
         </dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->
@@ -312,6 +315,30 @@
 	        <groupId>org.springframework.boot</groupId>
 	        <artifactId>spring-boot-maven-plugin</artifactId>
 	      </plugin>
+	      
+	      <!-- Download LookseeCore JAR before build -->
+	      <plugin>
+	        <groupId>org.codehaus.mojo</groupId>
+	        <artifactId>exec-maven-plugin</artifactId>
+	        <version>3.1.0</version>
+	        <executions>
+	          <execution>
+	            <id>download-core-jar</id>
+	            <phase>validate</phase>
+	            <goals>
+	              <goal>exec</goal>
+	            </goals>
+	            <configuration>
+	              <executable>bash</executable>
+	              <arguments>
+	                <argument>scripts/download-core.sh</argument>
+	              </arguments>
+	              <workingDirectory>${project.basedir}</workingDirectory>
+	            </configuration>
+	          </execution>
+	        </executions>
+	      </plugin>
+	      
 	      <!-- [START cloudrun_pubsub_jib] -->
 	      <!-- [START run_pubsub_jib] -->
 	      <plugin>
@@ -369,6 +396,13 @@
             <id>github</id>
             <name>GitHub LookseeCore Package</name>
             <url>https://maven.pkg.github.com/deepthought42/LookseeCore</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<layout>default</layout>
         </repository>
     </repositories>
 </project>

@@ -102,3 +102,45 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 [Add your license information here]
+
+## GitHub Packages Authentication
+
+This project depends on the `com.looksee:core` package from GitHub Packages. To resolve this dependency, you need to set up authentication.
+
+### For Local Development
+
+1. Create a Personal Access Token (PAT) with the following permissions:
+   - `read:packages` - to download packages
+   - `repo` - if the package is in a private repository
+
+2. Set environment variables:
+   ```bash
+   export GITHUB_TOKEN=your_personal_access_token
+   export GITHUB_USERNAME=your_github_username
+   ```
+
+3. Run Maven with the settings file:
+   ```bash
+   mvn clean install --settings settings.xml
+   ```
+
+### For GitHub Actions
+
+The workflow is configured to use the built-in `GITHUB_TOKEN` which should have access to packages in the same organization/repository.
+
+### Troubleshooting
+
+If you get a 401 Unauthorized error:
+
+1. Ensure your PAT has the correct permissions
+2. Verify the package exists at: https://maven.pkg.github.com/deepthought42/LookseeCore
+3. Check that the package coordinates match: `com.looksee:core:0.0.3`
+4. Make sure you're using the settings.xml file when running Maven commands
+
+### Alternative: Use GitHub CLI
+
+You can also authenticate using GitHub CLI:
+```bash
+gh auth login
+mvn clean install --settings settings.xml
+```
