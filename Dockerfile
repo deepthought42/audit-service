@@ -9,6 +9,10 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
+COPY scripts/download-core.sh .
+RUN chmod +x download-core.sh
+RUN bash download-core.sh
+
 # Copy the rest of the project source code
 COPY src ./src
 
