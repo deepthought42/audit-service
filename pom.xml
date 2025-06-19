@@ -392,17 +392,5 @@
 		    <id>atlassian-public</id>
 		    <url>https://packages.atlassian.com/maven/repository/public</url>
 		</repository>
-		<repository>
-            <id>github</id>
-            <name>GitHub LookseeCore Package</name>
-            <url>https://maven.pkg.github.com/deepthought42/LookseeCore</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<layout>default</layout>
-        </repository>
     </repositories>
 </project>
