@@ -110,6 +110,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Make download script executable
+        run: chmod +x scripts/download-core.sh
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:

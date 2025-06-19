@@ -229,7 +229,7 @@ public class AuditController {
 	    	VerifiedJourneyMessage verified_journey_msg = mapper.readValue(target, VerifiedJourneyMessage.class);
 		    
 			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(verified_journey_msg.getAuditRecordId());
-			pusher.sendAuditUpdate(verified_journey_msg.getDomainAuditRecordId()+"", audit_update);
+			pusher.sendAuditUpdate(verified_journey_msg.getAuditRecordId()+"", audit_update);
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
@@ -240,8 +240,8 @@ public class AuditController {
 		    DiscardedJourneyMessage discarded_journey_msg = mapper.readValue(target, DiscardedJourneyMessage.class);
 		    log.warn("DiscardedJourneyMessage message deserialized");
 
-		    AuditUpdateDto audit_update = buildDomainAuditRecordDTO(discarded_journey_msg.getDomainAuditRecordId());
-			pusher.sendAuditUpdate(discarded_journey_msg.getDomainAuditRecordId()+"", audit_update);
+		    AuditUpdateDto audit_update = buildDomainAuditRecordDTO(discarded_journey_msg.getAuditRecordId());
+			pusher.sendAuditUpdate(discarded_journey_msg.getAuditRecordId()+"", audit_update);
 			
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 
@@ -340,7 +340,7 @@ public class AuditController {
 	 */
 	private AuditUpdateDto buildDomainAuditRecordDTO(long audit_record_id) {
 		DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_record_id).get();
-	    Set<AuditRecord> page_audits = audit_record_service.getAllPageAudits(domain_audit.getId());
+	    Set<PageAuditRecord> page_audits = audit_record_service.getAllPageAudits(domain_audit.getId());
 	    log.warn("total page audits found = "+page_audits.size());
 	    int total_pages = page_audits.size();
 	    Set<AuditName> audit_labels = domain_audit.getAuditLabels();
