@@ -298,7 +298,7 @@
             <artifactId>core</artifactId>
             <version>0.1.5</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/core-0.1.5.jar</systemPath>
+            <systemPath>${pom.basedir}/libs/core-0.1.5.jar</systemPath>
         </dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->
