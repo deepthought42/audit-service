@@ -9,8 +9,8 @@ COPY pom.xml .
 
 # Copy and run the download script to get the LookseeCore JAR
 COPY scripts/download-core.sh ./scripts/download-core.sh
-RUN chmod +x download-core.sh
-RUN bash download-core.sh
+RUN chmod +x ./scripts/download-core.sh
+RUN bash ./scripts/download-core.sh
 
 # Copy the rest of the project source code
 COPY src ./src
