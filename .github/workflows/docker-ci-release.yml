@@ -33,10 +33,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Test with Maven
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_USERNAME: ${{ github.actor }}
-        run: mvn test -Dmaven.wagon.http.pool=false --settings .github/workflows/settings.xml
+        run: mvn test
 
   bump-version:
     needs: test
