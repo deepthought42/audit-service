@@ -22,12 +22,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.auditService.mapper.Body;
 import com.looksee.models.Account;
-import com.looksee.models.Audit;
-import com.looksee.models.AuditRecord;
 import com.looksee.models.Domain;
-import com.looksee.models.DomainAuditRecord;
-import com.looksee.models.PageAuditRecord;
 import com.looksee.models.PageState;
+import com.looksee.models.audit.Audit;
+import com.looksee.models.audit.AuditRecord;
+import com.looksee.models.audit.DomainAuditRecord;
+import com.looksee.models.audit.PageAuditRecord;
 import com.looksee.models.dto.AuditUpdateDto;
 import com.looksee.models.dto.PageAuditDto;
 import com.looksee.models.enums.AuditCategory;
@@ -46,6 +46,7 @@ import com.looksee.services.DomainService;
 import com.looksee.services.MessageBroadcaster;
 import com.looksee.services.PageStateService;
 import com.looksee.utils.AuditUtils;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -280,19 +281,19 @@ public class AuditController {
 		//calculate aesthetics score
 		//calculate information architecture score
 		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS,
-																 1,
-																 audits,
-																 AuditUtils.getAuditLabels(AuditCategory.AESTHETICS,
-																 audit_labels));
+																1,
+																audits,
+																AuditUtils.getAuditLabels(AuditCategory.AESTHETICS,
+																audit_labels));
 		
-		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT, 
-																1, 
-																audits, 
+		double content_progress = AuditUtils.calculateProgress(AuditCategory.CONTENT,
+																1,
+																audits,
 																audit_labels);
 		
-		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE, 
-																		1, 
-																		audits, 
+		double info_architecture_progress = AuditUtils.calculateProgress(AuditCategory.INFORMATION_ARCHITECTURE,
+																		1,
+																		audits,
 																		audit_labels);
 
 		double content_score = AuditUtils.calculateScoreByCategory(audits, AuditCategory.CONTENT);
