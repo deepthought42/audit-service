@@ -19,8 +19,7 @@ COPY src ./src
 RUN mvn clean install -DskipTests
 
 # Use a smaller JDK image to run the app
-FROM adoptopenjdk/openjdk14
-#FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre
 
 # Copy the built JAR file from the previous stage
 COPY --from=build /app/target/*.jar app.jar
