@@ -11,6 +11,7 @@ COPY pom.xml .
 COPY scripts/download-core.sh ./scripts/download-core.sh
 RUN chmod +x ./scripts/download-core.sh
 RUN bash ./scripts/download-core.sh
+RUN mvn install:install-file -Dfile=libs/core-0.3.1.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.1 -Dpackaging=jar
 
 # Copy the rest of the project source code
 COPY src ./src
@@ -19,8 +20,7 @@ COPY src ./src
 RUN mvn clean install -DskipTests
 
 # Use a smaller JDK image to run the app
-FROM adoptopenjdk/openjdk14
-#FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre
 
 # Copy the built JAR file from the previous stage
 COPY --from=build /app/target/*.jar app.jar

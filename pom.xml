@@ -1,63 +1,64 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  	<modelVersion>4.0.0</modelVersion>
-  	<groupId>com.looksee</groupId>
-  	<artifactId>audit-update-service</artifactId>
-  	<version>1.0.2</version>
-  	<packaging>jar</packaging>
-  
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.looksee</groupId>
+	<artifactId>audit-update-service</artifactId>
+	<version>1.0.2</version>
+	<packaging>jar</packaging>
+
     <properties>
 	    <selenium-version>3.141.59</selenium-version>
-	    <maven.compiler.source>1.8</maven.compiler.source>
-	    <maven.compiler.target>1.8</maven.compiler.target>
+	    <maven.compiler.source>17</maven.compiler.source>
+	    <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
 	    <springboot.version>2.6.13</springboot.version>
+		<core.version>0.3.1</core.version>
     </properties>
 
     <dependencyManagement>
 	    <dependencies>
-	      <dependency>
-	        <!-- Import dependency management from Spring Boot -->
-	        <groupId>org.springframework.boot</groupId>
-	        <artifactId>spring-boot-dependencies</artifactId>
-	        <version>${springboot.version}</version>
-	        <type>pom</type>
-	        <scope>import</scope>
-	      </dependency>
-	      <dependency>
-	        <groupId>org.springframework.cloud</groupId>
-	        <artifactId>spring-cloud-dependencies</artifactId>
-	        <version>2021.0.0</version>
-	        <type>pom</type>
-	        <scope>import</scope>
-	      </dependency>
-	      <dependency>
-	           <groupId>com.google.cloud</groupId>
-	           <artifactId>spring-cloud-gcp-dependencies</artifactId>
-	           <version>3.0.0</version>
-	           <type>pom</type>
-	           <scope>import</scope>
-	       </dependency>
-	    </dependencies>
-	  </dependencyManagement>
+			<dependency>
+				<!-- Import dependency management from Spring Boot -->
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${springboot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>2021.0.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.cloud</groupId>
+				<artifactId>spring-cloud-gcp-dependencies</artifactId>
+				<version>3.0.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
-	  <dependencies>
+	<dependencies>
 	    <dependency>
-	      <groupId>org.springframework.boot</groupId>
-	      <artifactId>spring-boot-starter-web</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
 	    </dependency>
 	    
 	    <dependency>
-	      <groupId>org.springframework.boot</groupId>
-	      <artifactId>spring-boot-starter-test</artifactId>
-	      <scope>test</scope>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 	    </dependency>
 	    
 	    <dependency>
-	      <groupId>junit</groupId>
-	      <artifactId>junit</artifactId>
-	      <scope>test</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
 	    </dependency>
 	    
 		<!--  SHUTTERBUG DEPENDENCIES -->
@@ -67,7 +68,7 @@
             <version>2.8.0</version>
         </dependency>
         
-	     <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-collections4</artifactId>
@@ -98,9 +99,9 @@
 
 		<!-- https://mvnrepository.com/artifact/org.springframework.retry/spring-retry -->
 		<dependency>
-		  <groupId>org.springframework.boot</groupId>
-		  <artifactId>spring-boot-starter-aop</artifactId>
-		  <version>${springboot.version}</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+			<version>${springboot.version}</version>
 		</dependency>
 		
 	   	<dependency>
@@ -109,26 +110,17 @@
     		<version>2.1.5</version>
    		</dependency>
 		
-		<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-gcp-startegoogler-pubsub -->
-		<!--
 		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-gcp-starter-pubsub</artifactId>
-		    <version>1.2.8.RELEASE</version>
-		</dependency>
--->
-
-		<dependency>
-		  <groupId>com.pusher</groupId>
-		  <artifactId>pusher-http-java</artifactId>
-		  <version>1.0.0</version>
+			<groupId>com.pusher</groupId>
+			<artifactId>pusher-http-java</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 		
 	    <!-- [END pubsub_spring_integration] -->
 	    <!-- [START pubsub_spring_cloud_stream_binder] -->
 	    <dependency>
-	      	<groupId>com.google.cloud</groupId>
-	      	<artifactId>spring-cloud-gcp-pubsub-stream-binder</artifactId>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>spring-cloud-gcp-pubsub-stream-binder</artifactId>
 			<version>3.2.1</version>
 	    </dependency>
 	    
@@ -176,11 +168,11 @@
 		</dependency>
 		
 		<dependency>
-	     	<groupId>org.springframework.cloud</groupId>
-	      	<artifactId>spring-cloud-gcp-dependencies</artifactId>
-	      	<version>1.2.5.RELEASE</version>
-	     	<type>pom</type>
-	     	<scope>import</scope>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-gcp-dependencies</artifactId>
+			<version>1.2.5.RELEASE</version>
+			<type>pom</type>
+			<scope>import</scope>
 	    </dependency>
 	    
 	    <!-- https://mvnrepository.com/artifact/com.google.cloud/spring-cloud-gcp-starter-storage -->
@@ -282,7 +274,7 @@
 				    <groupId>org.seleniumhq.selenium</groupId>
 				    <artifactId>selenium-java</artifactId>
 				</exclusion>
-	     	</exclusions>
+			</exclusions>
 		</dependency>
 		
 		<!-- https://mvnrepository.com/artifact/io.whelk.flesch.kincaid/whelk-flesch-kincaid -->
@@ -296,9 +288,9 @@
 		<dependency>
             <groupId>com.looksee</groupId>
             <artifactId>core</artifactId>
-            <version>0.1.5</version>
+            <version>${core.version}</version>
             <scope>system</scope>
-            <systemPath>${pom.basedir}/libs/core-0.1.5.jar</systemPath>
+            <systemPath>${pom.basedir}/libs/core-${core.version}.jar</systemPath>
         </dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->
@@ -310,69 +302,73 @@
 	</dependencies>
 
 	<build>
-	    <plugins>
-	      <plugin>
-	        <groupId>org.springframework.boot</groupId>
-	        <artifactId>spring-boot-maven-plugin</artifactId>
-	      </plugin>
-	      
-	      <!-- Download LookseeCore JAR before build -->
-	      <plugin>
-	        <groupId>org.codehaus.mojo</groupId>
-	        <artifactId>exec-maven-plugin</artifactId>
-	        <version>3.1.0</version>
-	        <executions>
-	          <execution>
-	            <id>download-core-jar</id>
-	            <phase>validate</phase>
-	            <goals>
-	              <goal>exec</goal>
-	            </goals>
-	            <configuration>
-	              <executable>bash</executable>
-	              <arguments>
-	                <argument>scripts/download-core.sh</argument>
-	              </arguments>
-	              <workingDirectory>${project.basedir}</workingDirectory>
-	            </configuration>
-	          </execution>
-	        </executions>
-	      </plugin>
-	      
-	      <!-- [START cloudrun_pubsub_jib] -->
-	      <!-- [START run_pubsub_jib] -->
-	      <plugin>
-	        <groupId>com.google.cloud.tools</groupId>
-	        <artifactId>jib-maven-plugin</artifactId>
-	        <version>3.2.1</version>
-	        <configuration>
-	          <to>
-	            <image>gcr.io/PROJECT_ID/pubsub</image>
-	          </to>
-	        </configuration>
-	      </plugin>
-	      <plugin>
-		      <groupId>org.springframework.boot</groupId>
-	          <artifactId>spring-boot-maven-plugin</artifactId>
-	          <version>${springboot.version}</version>
-	          <configuration>
-	             <fork>true</fork>
-	             <mainClass>com.looksee.auditService.Application</mainClass>
-	          </configuration>
-	          <executions>
-	            <execution>
-	              <goals>
-	                <goal>repackage</goal>
-                  </goals>
-	            </execution>
-	          </executions>
-    	  </plugin>
-	      <plugin>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-    	  </plugin>
-	    </plugins>
-  	</build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.11.0</version>
+				<configuration>
+					<source>17</source>
+					<target>17</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>1.18.30</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>download-core-jar</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>bash</executable>
+							<arguments>
+								<argument>scripts/download-core.sh</argument>
+							</arguments>
+							<workingDirectory>${project.basedir}</workingDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.2.1</version>
+				<configuration>
+				<to>
+					<image>gcr.io/PROJECT_ID/pubsub</image>
+				</to>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${springboot.version}</version>
+				<configuration>
+					<fork>true</fork>
+					<mainClass>com.looksee.auditService.Application</mainClass>
+				</configuration>
+				<executions>
+					<execution>
+					<goals>
+						<goal>repackage</goal>
+					</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
     
     <repositories>
         <repository>
