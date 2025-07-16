@@ -163,6 +163,8 @@
             <groupId>com.looksee</groupId>
             <artifactId>core</artifactId>
             <version>${core.version}</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/libs/core-${core.version}.jar</systemPath>
         </dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->

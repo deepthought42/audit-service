@@ -15,7 +15,7 @@ RUN bash ./scripts/download-core.sh
 # Copy the rest of the project source code
 COPY src ./src
 
-# Build the application
+# Build the application (libs directory with core JAR is already available from download step)
 RUN mvn clean install -DskipTests
 
 # Use a smaller JDK image to run the app
