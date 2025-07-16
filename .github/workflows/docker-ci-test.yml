@@ -22,10 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make download script executable
-        run: chmod +x scripts/download-core.sh
-
-      - name: Download LookseeCore JAR
+      - name: Download core JAR
         run: bash scripts/download-core.sh
 
       - name: Install core JAR to local repository
