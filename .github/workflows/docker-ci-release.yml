@@ -123,7 +123,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: ${{ github.actor }}
-        run: mvn install -DskipTests -Dmaven.wagon.http.pool=false --settings .github/workflows/settings.xml
+        run: mvn install -DskipTests --settings .github/workflows/settings.xml
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
