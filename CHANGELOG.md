@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/deepthought42/audit-service/compare/v1.0.4...v1.0.5) (2025-07-16)
+
+
+### Bug Fixes
+
+* revert settings deletion ([4a73d2f](https://github.com/deepthought42/audit-service/commit/4a73d2f97f934a1080b443e259bc68218a538dea))
+
 ## [1.0.4](https://github.com/deepthought42/audit-service/compare/v1.0.3...v1.0.4) (2025-07-16)
 
 
