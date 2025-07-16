@@ -158,7 +158,7 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Alternative: Direct JAR from GitHub release (uncomment if Maven repo doesn't work) -->
+		<!-- Direct JAR from GitHub release -->
 		<dependency>
             <groupId>com.looksee</groupId>
             <artifactId>core</artifactId>
@@ -182,8 +182,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
-					<source>17</source>
-					<target>17</target>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -220,9 +220,9 @@
 				<artifactId>jib-maven-plugin</artifactId>
 				<version>3.2.1</version>
 				<configuration>
-				<to>
-					<image>gcr.io/PROJECT_ID/pubsub</image>
-				</to>
+					<to>
+						<image>gcr.io/PROJECT_ID/pubsub</image>
+					</to>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -235,9 +235,9 @@
 				</configuration>
 				<executions>
 					<execution>
-					<goals>
-						<goal>repackage</goal>
-					</goals>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>

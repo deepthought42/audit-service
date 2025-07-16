@@ -1,7 +1,5 @@
 package com.looksee.auditService;
 
-import java.util.Random;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -31,10 +29,8 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 public class Application {
 	@SuppressWarnings("unused")
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	private static final Random rand = new Random(2020);
 
 	public static void main(String[] args)  {
 		SpringApplication.run(Application.class, args);
 	}
-
 }
