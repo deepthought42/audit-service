@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.looksee.auditService.mapper.Body;
+import com.looksee.mapper.Body;
 import com.looksee.models.Account;
 import com.looksee.models.Domain;
 import com.looksee.models.PageState;
