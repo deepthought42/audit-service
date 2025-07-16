@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/deepthought42/audit-service/compare/v1.0.6...v1.0.7) (2025-07-16)
+
+
+### Bug Fixes
+
+* move exclusion to properties ([bce93b2](https://github.com/deepthought42/audit-service/commit/bce93b29f2ea61df3edd9ada18c7c37d75557f13))
+
 ## [1.0.6](https://github.com/deepthought42/audit-service/compare/v1.0.5...v1.0.6) (2025-07-16)
 
 
