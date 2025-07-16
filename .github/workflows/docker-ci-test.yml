@@ -16,23 +16,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Make download script executable
-        run: chmod +x scripts/download-core.sh
-        
-      - name: Download LookseeCore JAR
-        run: bash scripts/download-core.sh
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
+      
+
+      - name: Make download script executable
+        run: chmod +x scripts/download-core.sh
+
+      - name: Download LookseeCore JAR
+        run: bash scripts/download-core.sh
 
       - name: Install core JAR
         run: mvn install:install-file -Dfile=libs/core-0.3.1.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.1 -Dpackaging=jar
       
       - name: Test with Maven
-        run: mvn test
+        run: mvn clean test
         
   build:
     needs: test
