@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/deepthought42/audit-service/compare/v1.0.5...v1.0.6) (2025-07-16)
+
+
+### Bug Fixes
+
+* resolve circular import by making ComponentScan more specific ([c44590e](https://github.com/deepthought42/audit-service/commit/c44590e05e3ebf09023dafa135f666e85f0d27b8))
+
 ## [1.0.5](https://github.com/deepthought42/audit-service/compare/v1.0.4...v1.0.5) (2025-07-16)
 
 
