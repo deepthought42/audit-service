@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/deepthought42/audit-service/compare/v1.0.7...v1.0.8) (2025-07-16)
+
+
+### Bug Fixes
+
+* removed unneeded dependencies and maven repositories ([4b015a4](https://github.com/deepthought42/audit-service/commit/4b015a4a8cc411b97420288676c3e0a814dc9d79))
+
 ## [1.0.7](https://github.com/deepthought42/audit-service/compare/v1.0.6...v1.0.7) (2025-07-16)
 
 
