@@ -16,7 +16,7 @@ RUN mvn install:install-file -Dfile=libs/core-0.3.1.jar -DgroupId=com.looksee -D
 # Copy the rest of the project source code
 COPY src ./src
 
-# Build the application (libs directory with core JAR is already available from download step)
+# Build the application (Maven will download and install core JAR automatically)
 RUN mvn clean install -DskipTests
 
 # Use a smaller JDK image to run the app
@@ -24,8 +24,7 @@ FROM eclipse-temurin:17-jre
 
 # Copy the built JAR file from the previous stage
 COPY --from=build /app/target/*.jar app.jar
-#COPY GCP-MyFirstProject-1c31159db52c.json GCP-MyFirstProject-1c31159db52c.json
-#COPY gmail_credentials.json /etc/creds/gmail_credentials.json
-EXPOSE 443
+
+EXPOSE 8080
 EXPOSE 80
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-Xms3G", "-ea","-jar", "app.jar"]

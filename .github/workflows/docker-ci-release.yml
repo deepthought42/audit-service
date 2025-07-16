@@ -25,7 +25,7 @@ jobs:
       - name: Download core JAR
         run: bash scripts/download-core.sh
 
-      - name: Install core JAR
+      - name: Install core JAR to local repository
         run: mvn install:install-file -Dfile=libs/core-0.3.1.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.1 -Dpackaging=jar
       
       - name: Test with Maven
@@ -116,7 +116,7 @@ jobs:
       - name: Download core JAR
         run: bash scripts/download-core.sh
 
-      - name: Install core JAR
+      - name: Install core JAR to local repository
         run: mvn install:install-file -Dfile=libs/core-0.3.1.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.1 -Dpackaging=jar
       
       - name: Maven install
