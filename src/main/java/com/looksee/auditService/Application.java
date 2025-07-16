@@ -11,10 +11,7 @@ import org.springframework.context.annotation.PropertySources;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
 
-@SpringBootApplication(exclude = {
-    // Exclude LookseeCoreAutoConfiguration to prevent circular import issue
-    com.looksee.LookseeCoreAutoConfiguration.class
-})
+@SpringBootApplication
 @ComponentScan(basePackages = {
     "com.looksee.auditService",
     "com.looksee.services",
