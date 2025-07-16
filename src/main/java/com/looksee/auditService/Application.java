@@ -15,7 +15,13 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
     // Exclude LookseeCoreAutoConfiguration to prevent circular import issue
     com.looksee.LookseeCoreAutoConfiguration.class
 })
-@ComponentScan(basePackages = {"com.looksee.*"})
+@ComponentScan(basePackages = {
+    "com.looksee.auditService",
+    "com.looksee.services",
+    "com.looksee.models",
+    "com.looksee.gcp",
+    "com.looksee.utils"
+})
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
