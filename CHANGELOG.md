@@ -1,3 +1,12 @@
+## [1.0.4](https://github.com/deepthought42/audit-service/compare/v1.0.3...v1.0.4) (2025-07-16)
+
+
+### Bug Fixes
+
+* core 0.3.1 install ([8679a39](https://github.com/deepthought42/audit-service/commit/8679a39f169ac0914d557933e9b85d31085f63a6))
+* exposed port number ([562fcbc](https://github.com/deepthought42/audit-service/commit/562fcbc00b7f5346f5a1ca3cf51996dd03da4546))
+* remove settings file from github action workflows folder ([7b7c1c8](https://github.com/deepthought42/audit-service/commit/7b7c1c828fb73b198aa958b0aac8b76e8df0bdf8))
+
 ## [1.0.3](https://github.com/deepthought42/audit-service/compare/v1.0.2...v1.0.3) (2025-07-15)
 
 
