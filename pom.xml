@@ -87,12 +87,6 @@
     		<version>2.1.5</version>
    		</dependency>
 		
-		<dependency>
-			<groupId>com.pusher</groupId>
-			<artifactId>pusher-http-java</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		
 	    <!-- [END pubsub_spring_integration] -->
 	    <!-- [START pubsub_spring_cloud_stream_binder] -->
 	    <dependency>
@@ -129,28 +123,6 @@
 		    <version>2.12.2</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jdk8 -->
-		<dependency>
-		    <groupId>com.fasterxml.jackson.datatype</groupId>
-		    <artifactId>jackson-datatype-jdk8</artifactId>
-		    <version>2.12.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-gcp-dependencies</artifactId>
-			<version>1.2.5.RELEASE</version>
-			<type>pom</type>
-			<scope>import</scope>
-	    </dependency>
-
-		<!-- https://mvnrepository.com/artifact/com.getsentry.raven/raven-logback -->
-		<dependency>
-		    <groupId>com.getsentry.raven</groupId>
-		    <artifactId>raven-logback</artifactId>
-		    <version>8.0.3</version>
-		</dependency>
-		
 		<dependency>
 		    <groupId>org.projectlombok</groupId>
 		    <artifactId>lombok</artifactId>
