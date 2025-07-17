@@ -13,6 +13,8 @@
         <java.version>17</java.version>
 	    <springboot.version>2.6.13</springboot.version>
 		<core.version>0.3.1</core.version>
+		<spring-cloud-gcp.version>3.1.0</spring-cloud-gcp.version>
+		<google-cloud-bom.version>24.4.0</google-cloud-bom.version>
     </properties>
 
     <dependencyManagement>
@@ -22,6 +24,22 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
 				<version>${springboot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<!-- Import Google Cloud BOM for version management -->
+				<groupId>com.google.cloud</groupId>
+				<artifactId>libraries-bom</artifactId>
+				<version>${google-cloud-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<!-- Import Spring Cloud GCP BOM -->
+				<groupId>com.google.cloud</groupId>
+				<artifactId>spring-cloud-gcp-dependencies</artifactId>
+				<version>${spring-cloud-gcp.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -39,6 +57,19 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 	    </dependency>
+
+		<!-- Google Cloud Secret Manager -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>spring-cloud-gcp-starter-secretmanager</artifactId>
+		</dependency>
+
+		<!-- Google Cloud Pub/Sub -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>spring-cloud-gcp-starter-pubsub</artifactId>
+		</dependency>
+
 
 		<dependency>
 		    <groupId>org.projectlombok</groupId>
