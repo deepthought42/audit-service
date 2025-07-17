@@ -1,30 +1,41 @@
 package com.looksee.auditService.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.looksee.models.dto.AuditUpdateDto;
-import com.looksee.services.MessageBroadcaster;
 
 @Configuration
 public class ServiceConfiguration {
     
-    private static final Logger log = LoggerFactory.getLogger(ServiceConfiguration.class);
-    
+    /**
+     * Provides mock Pusher configuration for development/testing.
+     * This allows MessageBroadcaster to be created without real Pusher credentials.
+     */
     @Bean
-    @ConditionalOnMissingBean(MessageBroadcaster.class)
-    public MessageBroadcaster messageBroadcaster() {
-        // Mock implementation that doesn't require any Pusher configuration
-        return new MessageBroadcaster() {
-            @Override
-            public void sendAuditUpdate(String auditId, AuditUpdateDto auditUpdate) {
-                log.info("Mock MessageBroadcaster: Would send audit update for auditId={}, status={}", 
-                        auditId, auditUpdate != null ? auditUpdate.getStatus() : "null");
-                // No-op implementation for testing/development
-            }
-        };
+    @ConfigurationProperties(prefix = "pusher.mock")
+    public PusherConfig pusherConfig() {
+        PusherConfig config = new PusherConfig();
+        config.setAppId("mock-app-id");
+        config.setKey("mock-key");
+        config.setSecret("mock-secret");
+        config.setCluster("mock-cluster");
+        return config;
+    }
+    
+    public static class PusherConfig {
+        private String appId;
+        private String key;
+        private String secret;
+        private String cluster;
+        
+        // Getters and setters
+        public String getAppId() { return appId; }
+        public void setAppId(String appId) { this.appId = appId; }
+        public String getKey() { return key; }
+        public void setKey(String key) { this.key = key; }
+        public String getSecret() { return secret; }
+        public void setSecret(String secret) { this.secret = secret; }
+        public String getCluster() { return cluster; }
+        public void setCluster(String cluster) { this.cluster = cluster; }
     }
 } 
