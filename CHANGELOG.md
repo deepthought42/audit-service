@@ -1,3 +1,10 @@
+## [1.0.12](https://github.com/deepthought42/audit-service/compare/v1.0.11...v1.0.12) (2025-07-17)
+
+
+### Bug Fixes
+
+* changed location of looksee core auto config in properties ([f44e1aa](https://github.com/deepthought42/audit-service/commit/f44e1aaeae391f06d6094d082dc84a7d29899b49))
+
 ## [1.0.11](https://github.com/deepthought42/audit-service/compare/v1.0.10...v1.0.11) (2025-07-17)
 
 
