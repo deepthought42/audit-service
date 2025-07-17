@@ -1,3 +1,10 @@
+## [1.0.19](https://github.com/deepthought42/audit-service/compare/v1.0.18...v1.0.19) (2025-07-17)
+
+
+### Bug Fixes
+
+* create pusher mock to resolve dependency issue ([318fe5c](https://github.com/deepthought42/audit-service/commit/318fe5cbd00b5cf44d473fd407c79cec0485a8e3))
+
 ## [1.0.18](https://github.com/deepthought42/audit-service/compare/v1.0.17...v1.0.18) (2025-07-17)
 
 
