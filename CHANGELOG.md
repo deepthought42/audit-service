@@ -1,3 +1,10 @@
+## [1.0.20](https://github.com/deepthought42/audit-service/compare/v1.0.19...v1.0.20) (2025-07-17)
+
+
+### Bug Fixes
+
+* pusher mock ([1fb2339](https://github.com/deepthought42/audit-service/commit/1fb2339f5284a09b44183e87f9f814c094d4ead8))
+
 ## [1.0.19](https://github.com/deepthought42/audit-service/compare/v1.0.18...v1.0.19) (2025-07-17)
 
 
