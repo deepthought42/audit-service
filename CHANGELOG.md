@@ -1,3 +1,10 @@
+## [1.0.24](https://github.com/deepthought42/audit-service/compare/v1.0.23...v1.0.24) (2025-07-17)
+
+
+### Bug Fixes
+
+* replace pusher var with messageBroadcaster ([2687ba3](https://github.com/deepthought42/audit-service/commit/2687ba38135559ed143e15856d6a1bfe3d30ee59))
+
 ## [1.0.23](https://github.com/deepthought42/audit-service/compare/v1.0.22...v1.0.23) (2025-07-17)
 
 
