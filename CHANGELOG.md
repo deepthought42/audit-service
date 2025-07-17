@@ -1,3 +1,10 @@
+## [1.0.15](https://github.com/deepthought42/audit-service/compare/v1.0.14...v1.0.15) (2025-07-17)
+
+
+### Bug Fixes
+
+* component scan to get services beans ([0a1f61b](https://github.com/deepthought42/audit-service/commit/0a1f61be01b23bac50987f426a39b923da102937))
+
 ## [1.0.14](https://github.com/deepthought42/audit-service/compare/v1.0.13...v1.0.14) (2025-07-17)
 
 
