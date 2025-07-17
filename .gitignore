@@ -33,5 +33,6 @@ hs_err_pid*
 .classpath
 
 GCP-MyFirstProject-1c31159db52c.json
-
 gmail_credentials.json
+
+LOG_FILE_IS_UNDEFINED

@@ -4,11 +4,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 
 
 @SpringBootApplication
+@ComponentScan(basePackages = {
+    "com.looksee.auditService",
+    "com.looksee.services",     // Enable services from core JAR
+    "com.looksee.models",  
+    "com.looksee.gcp",
+    "com.looksee.utils"
+})
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
