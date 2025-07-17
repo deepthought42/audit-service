@@ -1,3 +1,10 @@
+## [1.0.13](https://github.com/deepthought42/audit-service/compare/v1.0.12...v1.0.13) (2025-07-17)
+
+
+### Bug Fixes
+
+* properties update ([d2d6697](https://github.com/deepthought42/audit-service/commit/d2d66971bceab2f17a85abb9c00cb927813744e6))
+
 ## [1.0.12](https://github.com/deepthought42/audit-service/compare/v1.0.11...v1.0.12) (2025-07-17)
 
 
