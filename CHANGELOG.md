@@ -1,3 +1,10 @@
+## [1.0.17](https://github.com/deepthought42/audit-service/compare/v1.0.16...v1.0.17) (2025-07-17)
+
+
+### Bug Fixes
+
+* resolve bean conflict ([7f41eda](https://github.com/deepthought42/audit-service/commit/7f41edab18606214bade46d0e6857d2c348b2720))
+
 ## [1.0.16](https://github.com/deepthought42/audit-service/compare/v1.0.15...v1.0.16) (2025-07-17)
 
 
