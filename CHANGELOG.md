@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/deepthought42/audit-service/compare/v1.0.8...v1.0.9) (2025-07-17)
+
+
+### Bug Fixes
+
+* cleanup properties file ([2926351](https://github.com/deepthought42/audit-service/commit/2926351cb6f29d8a6a2bdb7d8db3bdc129297d15))
+
 ## [1.0.8](https://github.com/deepthought42/audit-service/compare/v1.0.7...v1.0.8) (2025-07-16)
 
 
