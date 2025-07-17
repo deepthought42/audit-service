@@ -1,3 +1,10 @@
+## [1.0.16](https://github.com/deepthought42/audit-service/compare/v1.0.15...v1.0.16) (2025-07-17)
+
+
+### Bug Fixes
+
+* include neo4j repos ([69213ee](https://github.com/deepthought42/audit-service/commit/69213ee92a7e7a667092976737722e1f60414814))
+
 ## [1.0.15](https://github.com/deepthought42/audit-service/compare/v1.0.14...v1.0.15) (2025-07-17)
 
 
