@@ -1,3 +1,10 @@
+## [1.0.14](https://github.com/deepthought42/audit-service/compare/v1.0.13...v1.0.14) (2025-07-17)
+
+
+### Bug Fixes
+
+* properties update to exclude auto config ([50cdb22](https://github.com/deepthought42/audit-service/commit/50cdb2246656f81cc2ad4ade1d36c43721d0cb03))
+
 ## [1.0.13](https://github.com/deepthought42/audit-service/compare/v1.0.12...v1.0.13) (2025-07-17)
 
 
