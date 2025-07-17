@@ -8,16 +8,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 
 
-@SpringBootApplication(
-    exclude = {com.looksee.config.LookseeCoreAutoConfiguration.class},
-    scanBasePackages = {
-        "com.looksee.auditService",
-        "com.looksee.services",
-        "com.looksee.models",
-        "com.looksee.gcp",
-        "com.looksee.utils"
-    }
-)
+@SpringBootApplication
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
