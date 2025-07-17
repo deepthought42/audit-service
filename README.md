@@ -107,7 +107,15 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project depends on the `com.looksee:core` package from GitHub Packages. To resolve this dependency, you need to set up authentication.
 
-### For Local Development
+### Local Development
+
+#### Install LookseeCore JAR to Local Maven Repository
+
+Before building, you must install the LookseeCore JAR to your local Maven repository:
+
+```bash
+mvn install:install-file -Dfile=libs/core-0.3.2.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.2 -Dpackaging=jar
+```
 
 1. Create a Personal Access Token (PAT) with the following permissions:
    - `read:packages` - to download packages
