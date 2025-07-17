@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -19,6 +20,8 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
     "com.looksee.gcp",
     "com.looksee.utils",
 	"com.looksee.config"
+}, excludeFilters = {
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = com.looksee.config.LookseeCoreAutoConfiguration.class)
 })
 @EnableNeo4jRepositories(basePackages = "com.looksee.models.repository")
 @PropertySources({
