@@ -1,3 +1,10 @@
+## [1.0.23](https://github.com/deepthought42/audit-service/compare/v1.0.22...v1.0.23) (2025-07-17)
+
+
+### Bug Fixes
+
+* initialize message broadcaster bean ([787a46b](https://github.com/deepthought42/audit-service/commit/787a46bcb8fc26a55f8b1a68da172e37ab2543fa))
+
 ## [1.0.22](https://github.com/deepthought42/audit-service/compare/v1.0.21...v1.0.22) (2025-07-17)
 
 
