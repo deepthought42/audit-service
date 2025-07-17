@@ -1,3 +1,10 @@
+## [1.0.18](https://github.com/deepthought42/audit-service/compare/v1.0.17...v1.0.18) (2025-07-17)
+
+
+### Bug Fixes
+
+* Auto config conflict resolved ([8ccd1ff](https://github.com/deepthought42/audit-service/commit/8ccd1fffe75571cb05e4bc060e15606d5852e805))
+
 ## [1.0.17](https://github.com/deepthought42/audit-service/compare/v1.0.16...v1.0.17) (2025-07-17)
 
 
