@@ -71,7 +71,7 @@ public class AuditController {
 	private PageStateService page_state_service;
 	
 	@Autowired
-	private MessageBroadcaster pusher;
+	private MessageBroadcaster messageBroadcaster;
 	
 	/**
 	 * Receives a message from the message broker and processes it
@@ -109,13 +109,13 @@ public class AuditController {
 			if(audit_record.isPresent()) {
 	    		//build page audit progress
 				AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_msg.getPageAuditId());
-				pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
+				messageBroadcaster.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
 
 				Optional<DomainAuditRecord> domain_audit_record_opt = audit_record_service.getDomainAuditRecordForPageRecord(audit_msg.getPageAuditId());
 				if(domain_audit_record_opt.isPresent()){
 					
 					audit_update = buildDomainAuditRecordDTO(audit_msg.getPageAuditId());
-					pusher.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
+					messageBroadcaster.sendAuditUpdate(audit_record.get().getId()+"", audit_update);
 
 					if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
 						Account account = account_service.findById(audit_msg.getAccountId()).get();
@@ -196,14 +196,14 @@ public class AuditController {
 			
 			// If domain audit exists send a domain level audit update
 			if(domain_audit.isPresent()) {
-				 //Broadcast audit update message to pusher
+				 //Broadcast audit update message to messageBroadcaster
 				AuditUpdateDto audit_update = buildPageAuditUpdatedDto(domain_audit.get().getId());
-				pusher.sendAuditUpdate(domain_audit.get().getId()+"", audit_update);
+				messageBroadcaster.sendAuditUpdate(domain_audit.get().getId()+"", audit_update);
 			}
 			else {
-				 //Broadcast audit update message to pusher
+				 //Broadcast audit update message to messageBroadcaster
 				AuditUpdateDto audit_update = buildPageAuditUpdatedDto(audit_record.getId());
-				pusher.sendAuditUpdate(audit_record.getId()+"", audit_update);
+				messageBroadcaster.sendAuditUpdate(audit_record.getId()+"", audit_update);
 			}
 			
 			log.warn("successfully sent update for single page audit");
@@ -217,7 +217,7 @@ public class AuditController {
 	    try {
 		    JourneyCandidateMessage journey_candidate_msg = mapper.readValue(target, JourneyCandidateMessage.class);
 			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(journey_candidate_msg.getAuditRecordId());
-			pusher.sendAuditUpdate(journey_candidate_msg.getAuditRecordId()+"", audit_update);
+			messageBroadcaster.sendAuditUpdate(journey_candidate_msg.getAuditRecordId()+"", audit_update);
 
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
@@ -230,7 +230,7 @@ public class AuditController {
 	    	VerifiedJourneyMessage verified_journey_msg = mapper.readValue(target, VerifiedJourneyMessage.class);
 		    
 			AuditUpdateDto audit_update = buildDomainAuditRecordDTO(verified_journey_msg.getAuditRecordId());
-			pusher.sendAuditUpdate(verified_journey_msg.getAuditRecordId()+"", audit_update);
+			messageBroadcaster.sendAuditUpdate(verified_journey_msg.getAuditRecordId()+"", audit_update);
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
@@ -242,7 +242,7 @@ public class AuditController {
 		    log.warn("DiscardedJourneyMessage message deserialized");
 
 		    AuditUpdateDto audit_update = buildDomainAuditRecordDTO(discarded_journey_msg.getAuditRecordId());
-			pusher.sendAuditUpdate(discarded_journey_msg.getAuditRecordId()+"", audit_update);
+			messageBroadcaster.sendAuditUpdate(discarded_journey_msg.getAuditRecordId()+"", audit_update);
 			
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 
