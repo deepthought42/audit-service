@@ -7,16 +7,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
     "com.looksee.auditService",
-    "com.looksee.services",     // Enable services from core JAR
-    "com.looksee.models",  
+    "com.looksee.services",
+    "com.looksee.models",
     "com.looksee.gcp",
-    "com.looksee.utils"
+    "com.looksee.utils",
+    "com.looksee.config"  // Include config package from core JAR
 })
+@EnableNeo4jRepositories(basePackages = "com.looksee.models.repository")
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
