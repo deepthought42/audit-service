@@ -1,3 +1,11 @@
+## [1.0.21](https://github.com/deepthought42/audit-service/compare/v1.0.20...v1.0.21) (2025-07-17)
+
+
+### Bug Fixes
+
+* corrected import of Body class ([b12c10c](https://github.com/deepthought42/audit-service/commit/b12c10c20c5f6ebd177c96f82433a58a3ea41cd4))
+* upgrade core version, and add some Config boilerplate ([51637a7](https://github.com/deepthought42/audit-service/commit/51637a78147fa808e85613ea43ac14702dfcb9f5))
+
 ## [1.0.20](https://github.com/deepthought42/audit-service/compare/v1.0.19...v1.0.20) (2025-07-17)
 
 
