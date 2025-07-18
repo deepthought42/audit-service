@@ -1,3 +1,10 @@
+## [1.0.25](https://github.com/deepthought42/audit-service/compare/v1.0.24...v1.0.25) (2025-07-18)
+
+
+### Bug Fixes
+
+* remove unnecessary config annotations ([f0b0d3e](https://github.com/deepthought42/audit-service/commit/f0b0d3e19079aa8814b4559d7bc355f1b02a9d14))
+
 ## [1.0.24](https://github.com/deepthought42/audit-service/compare/v1.0.23...v1.0.24) (2025-07-17)
 
 
