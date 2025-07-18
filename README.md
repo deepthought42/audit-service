@@ -114,7 +114,11 @@ This project depends on the `com.looksee:core` package from GitHub Packages. To 
 Before building, you must install the LookseeCore JAR to your local Maven repository:
 
 ```bash
+<<<<<<< Updated upstream
 mvn install:install-file -Dfile=libs/core-0.3.6.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.6 -Dpackaging=jar
+=======
+mvn install:install-file -Dfile=libs/core-0.3.7.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.7 -Dpackaging=jar
+>>>>>>> Stashed changes
 ```
 
 1. Create a Personal Access Token (PAT) with the following permissions:
