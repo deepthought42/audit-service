@@ -9,7 +9,9 @@ import org.springframework.context.annotation.PropertySources;
 
 
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+    "com.looksee.auditService"
+})
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
