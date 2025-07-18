@@ -1,3 +1,10 @@
+## [1.0.29](https://github.com/deepthought42/audit-service/compare/v1.0.28...v1.0.29) (2025-07-18)
+
+
+### Bug Fixes
+
+* upgrade core version to 0.3.10 ([7ab3f5c](https://github.com/deepthought42/audit-service/commit/7ab3f5c4bd9fb298223fd74cd98e35e10ad8e13f))
+
 ## [1.0.28](https://github.com/deepthought42/audit-service/compare/v1.0.27...v1.0.28) (2025-07-18)
 
 
