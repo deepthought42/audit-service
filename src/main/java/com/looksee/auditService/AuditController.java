@@ -144,7 +144,7 @@ public class AuditController {
 						//send email that audit is complete
 						PageState page_state = audit_record_service.getPageStateForAuditRecord(audit_msg.getPageAuditId());
 						account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
-							log.warn("sending email to user = " + account.getEmail() + " for page=" + page_state.getUrl());
+							log.warn("sending email to user = " + account.getEmail() + " for page=" + (page_state != null ? page_state.getUrl() : "unknown"));
 							//mail_service.sendPageAuditCompleteEmail(account.getEmail(),
 																  //page_state.getUrl(),
 																  //page_state.getId());
@@ -191,14 +191,12 @@ public class AuditController {
 					audit_id = domain_audit.get().getId();
 
 					if(is_domain_audit_complete) {
-						Domain domain = domain_service.findByAuditRecord(audit_id);
 						account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
 							//mail_service.sendDomainAuditCompleteEmail(account.getEmail(), domain.getUrl(), domain.getId());
 						});
 					}
 				}
 				else {
-					PageState page = audit_record_service.getPageStateForAuditRecord(audit_record.getId());
 					account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
 						//mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
 					});
@@ -351,7 +349,11 @@ public class AuditController {
 	 * @return
 	 */
 	private AuditUpdateDto buildDomainAuditRecordDTO(long audit_record_id) {
-		DomainAuditRecord domain_audit = (DomainAuditRecord)audit_record_service.findById(audit_record_id).get();
+		Optional<AuditRecord> auditRecordOpt = audit_record_service.findById(audit_record_id);
+		if (auditRecordOpt.isEmpty() || !(auditRecordOpt.get() instanceof DomainAuditRecord)) {
+			throw new IllegalArgumentException("Domain audit record not found for id=" + audit_record_id);
+		}
+		DomainAuditRecord domain_audit = (DomainAuditRecord) auditRecordOpt.get();
 	    Set<PageAuditRecord> page_audits = audit_record_service.getAllPageAudits(domain_audit.getId());
 	    log.warn("total page audits found = "+page_audits.size());
 	    int total_pages = page_audits.size();
