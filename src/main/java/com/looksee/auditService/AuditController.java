@@ -183,12 +183,10 @@ public class AuditController {
 			Optional<DomainAuditRecord> domain_audit = audit_record_service.getDomainAuditRecordForPageRecord(audit_record.getId());
 
 			if(is_page_audit_complete) {
-				long audit_id = audit_record.getId();
 
 				//if domainASudit is present and considered complete then send an email to the user if the account exists
 				if(domain_audit.isPresent()) {
 					boolean is_domain_audit_complete = audit_record_service.isDomainAuditComplete(domain_audit.get());
-					audit_id = domain_audit.get().getId();
 
 					if(is_domain_audit_complete) {
 						account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
