@@ -1,3 +1,13 @@
+## [1.0.33](https://github.com/deepthought42/audit-service/compare/v1.0.32...v1.0.33) (2026-02-21)
+
+
+### Bug Fixes
+
+* **ci:** sanitize docker tag for PR branch names ([b478d96](https://github.com/deepthought42/audit-service/commit/b478d96735c50f38ddf0d96917d8e15c851cd11b))
+* clean up merge leftovers in page progress flow ([79b408d](https://github.com/deepthought42/audit-service/commit/79b408d4023f9520084b57056f978d16de352b51))
+* correct audit update routing regressions ([5cdf289](https://github.com/deepthought42/audit-service/commit/5cdf289c6ad5c3535ab51aae22805933de5ce46e))
+* resolve merge-related controller edge cases ([493deaf](https://github.com/deepthought42/audit-service/commit/493deaf2826e6d090259248987d6d13efaa59a3d))
+
 ## [1.0.32](https://github.com/deepthought42/audit-service/compare/v1.0.31...v1.0.32) (2025-07-18)
 
 
