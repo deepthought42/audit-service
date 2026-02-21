@@ -1,154 +1,121 @@
 # Look-see Audit Service
 
-A comprehensive web auditing service that performs automated analysis of websites for accessibility, content quality, information architecture, and design system compliance. The service provides detailed audits at both page and domain levels, helping organizations ensure their web presence meets best practices and standards.
+A Spring Boot service that processes audit progress events and publishes live audit updates for page and domain audits.
 
 ## Features
 
-### Audit Categories
-- **Accessibility Audits**: Evaluates web pages for WCAG compliance and accessibility best practices
-- **Content Audits**: Analyzes content quality, readability, and metadata
-- **Information Architecture Audits**: Reviews site structure, navigation, and link quality
-- **Design System Audits**: Ensures consistent design implementation across pages
+- Processes audit-related broker messages and converts them into user-facing progress updates.
+- Supports both page and domain audit progress calculations.
+- Broadcasts updates via `MessageBroadcaster` (for example, Pusher-backed real-time delivery).
+- Uses Looksee core domain models/services for audit state, journeys, and scoring.
 
-### Key Capabilities
-- **Page-level Audits**: Detailed analysis of individual web pages
-- **Domain-level Audits**: Comprehensive evaluation across entire websites
-- **Real-time Progress Updates**: Live audit progress tracking via Pusher integration
-- **Detailed Issue Reporting**: Identifies specific issues with explanations and recommendations
-- **Scoring System**: Quantifies audit results with points-based scoring
-- **Neo4j Database**: Graph database storage for complex audit relationships
+## Tech Stack
 
-### Specific Audit Types
-- **Metadata Audits**: Evaluates page titles, descriptions, and meta tags
-- **Readability Audits**: Analyzes content reading level and comprehension
-- **Image Audits**: Checks image accessibility, copyright compliance, and optimization
-- **Paragraphing Audits**: Reviews content structure and formatting
-- **Link Audits**: Validates link functionality and accessibility
+- Java 17
+- Spring Boot 2.6.x
+- Maven
+- Looksee Core (`com.looksee:core`)
 
-## Technical Stack
-- Java Spring Boot
-- Neo4j Graph Database
-- Pusher for Real-time Updates
-- Google Cloud NLP (for content analysis)
-- Jsoup (for HTML parsing)
+## Prerequisites
 
-## Getting Started
+- Java 17+
+- Maven 3.9+
+- Access to the private `com.looksee:core` package (or a locally installed core JAR)
 
-### Prerequisites
-- Java 11 or higher
-- Neo4j Database
-- Pusher Account (for real-time updates)
-- Google Cloud credentials (for NLP features)
+## Build and Run
 
-### Configuration
-1. Set up your Neo4j database
-2. Configure Pusher credentials in `application.properties`:
-   ```
-   pusher.appId=your_app_id
-   pusher.key=your_key
-   pusher.secret=your_secret
-   pusher.cluster=your_cluster
-   ```
-3. Configure Google Cloud credentials for NLP features
-
-### Running the Service
-1. Build the project:
-   ```bash
-   ./gradlew build
-   ```
-2. Run the service:
-   ```bash
-   java -jar build/libs/audit-service.jar
-   ```
-
-## API Usage
-
-### Starting an Audit
-```http
-POST /audit
-Content-Type: application/json
-
-{
-    "url": "https://example.com",
-    "auditLevel": "DOMAIN",
-    "auditCategories": ["ACCESSIBILITY", "CONTENT", "INFORMATION_ARCHITECTURE"]
-}
-```
-
-### Getting Audit Results
-```http
-GET /audit/{auditId}
-```
-
-### Real-time Updates
-The service provides real-time audit progress updates through Pusher channels. Subscribe to the appropriate channel to receive live updates during audits.
-
-## Audit Results
-
-Audit results include:
-- Overall scores for each audit category
-- Detailed issue reports with:
-  - Issue description
-  - Priority level
-  - Recommendations for resolution
-  - Affected elements
-- Progress tracking
-- Historical audit data
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-[Add your license information here]
-
-## GitHub Packages Authentication
-
-This project depends on the `com.looksee:core` package from GitHub Packages. To resolve this dependency, you need to set up authentication.
-
-### Local Development
-
-#### Install LookseeCore JAR to Local Maven Repository
-
-Before building, you must install the LookseeCore JAR to your local Maven repository:
+### 1) Install Looksee Core locally (if not pulling from GitHub Packages)
 
 ```bash
 mvn install:install-file -Dfile=libs/core-0.3.13.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.13 -Dpackaging=jar
 ```
 
-1. Create a Personal Access Token (PAT) with the following permissions:
-   - `read:packages` - to download packages
-   - `repo` - if the package is in a private repository
+### 2) Configure GitHub Packages auth (if needed)
 
-2. Set environment variables:
-   ```bash
-   export GITHUB_TOKEN=your_personal_access_token
-   export GITHUB_USERNAME=your_github_username
-   ```
-
-3. Run Maven with the settings file:
-   ```bash
-   mvn clean install --settings settings.xml
-   ```
-
-### For GitHub Actions
-
-The workflow is configured to use the built-in `GITHUB_TOKEN` which should have access to packages in the same organization/repository.
-
-### Troubleshooting
-
-If you get a 401 Unauthorized error:
-
-1. Ensure your PAT has the correct permissions
-2. Verify the package exists at: https://maven.pkg.github.com/deepthought42/LookseeCore
-3. Check that the package coordinates match: `com.looksee:core:0.0.3`
-4. Make sure you're using the settings.xml file when running Maven commands
-
-### Alternative: Use GitHub CLI
-
-You can also authenticate using GitHub CLI:
 ```bash
-gh auth login
-mvn clean install --settings settings.xml
+export GITHUB_TOKEN=your_personal_access_token
+export GITHUB_USERNAME=your_github_username
 ```
+
+### 3) Build
+
+```bash
+mvn clean package
+```
+
+### 4) Run
+
+```bash
+mvn spring-boot:run
+```
+
+Or run the packaged jar:
+
+```bash
+java -jar target/audit-update-service-1.0.32.jar
+```
+
+## Service Endpoint
+
+The service receives broker push payloads at:
+
+```http
+POST /
+Content-Type: application/json
+```
+
+Expected request body shape:
+
+```json
+{
+  "message": {
+    "data": "<base64-encoded-json-message>"
+  }
+}
+```
+
+## Configuration
+
+See `src/main/resources/application.properties` for runtime configuration. Key areas:
+
+- Server and management ports
+- GCP Pub/Sub topic names
+- Pusher credentials (typically via env vars)
+- Neo4j settings (commented templates)
+
+## Code Review Findings (this repository)
+
+### Issues fixed
+
+1. **Potential null payload handling in controller**
+   - Added defensive validation for null/invalid message payloads and now returns `400 Bad Request`.
+
+2. **Unsafe `Optional#get()` usage**
+   - Replaced risky direct `get()` usage with safer `ifPresent(...)` / guarded Optional checks in message-processing paths.
+
+3. **Incorrect completion status condition**
+   - Fixed duplicated progress condition checks to correctly include information architecture progress.
+
+4. **Error status semantics**
+   - Changed unknown/unhandled message response from `200 OK` to `400 Bad Request` for clearer client behavior.
+
+5. **Logging and typo quality issues**
+   - Replaced `printStackTrace()` with structured logger warnings and fixed typo in warning text.
+
+6. **Broken test assertion typo**
+   - Corrected `assetTrue(...)` typo and simplified the placeholder test to compile cleanly.
+
+### Additional recommended follow-ups
+
+- Add focused unit tests for `AuditController.receiveMessage(...)` covering each message type and malformed payloads.
+- Consolidate message deserialization strategy to avoid repetitive try/catch branches.
+- Replace field injection (`@Autowired`) with constructor injection for clearer immutability and testability.
+- Resolve dependency retrieval/network policy issues that currently block Maven builds in restricted environments.
+
+## Contributing
+
+Contributions are welcome. Please follow Conventional Commits as documented in `CONTRIBUTING.md`.
+
+## License
+
+See `LICENSE`.
