@@ -131,23 +131,14 @@ public class AuditController {
 						account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
 							Domain domain = domain_service.findByAuditRecord(domain_audit_record_opt.get().getId());
 							log.warn("sending email to user = " + account.getEmail() + " for domain=" + domain.getUrl());
-							//mail_service.sendDomainAuditCompleteEmail(account.getEmail(),
-							//								domain.getUrl(),
-							//								domain.getId());
 						});
 					}
 				}
 				else{
-					//if domain audit is complete then send email
 					if( ExecutionStatus.COMPLETE.equals(audit_update.getStatus())) {
-						log.warn("sending email to user");
-						//send email that audit is complete
 						PageState page_state = audit_record_service.getPageStateForAuditRecord(audit_msg.getPageAuditId());
 						account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
 							log.warn("sending email to user = " + account.getEmail() + " for page=" + (page_state != null ? page_state.getUrl() : "unknown"));
-							//mail_service.sendPageAuditCompleteEmail(account.getEmail(),
-																  //page_state.getUrl(),
-																  //page_state.getId());
 						});
 					}
 				}
@@ -174,34 +165,9 @@ public class AuditController {
 			}
 			PageAuditRecord audit_record = (PageAuditRecord) auditRecordOpt.get();
 
-			Set<Audit> audit_list = audit_record_service.getAllAudits(audit_msg.getPageAuditId());
-			Set<AuditName> audit_labels = audit_record.getAuditLabels();
-
-			//if page audit is complete then
-			boolean is_page_audit_complete = AuditUtils.isPageAuditComplete(audit_list, audit_labels);
-
 			Optional<DomainAuditRecord> domain_audit = audit_record_service.getDomainAuditRecordForPageRecord(audit_record.getId());
 
-			if(is_page_audit_complete) {
-
-				//if domainASudit is present and considered complete then send an email to the user if the account exists
-				if(domain_audit.isPresent()) {
-					boolean is_domain_audit_complete = audit_record_service.isDomainAuditComplete(domain_audit.get());
-
-					if(is_domain_audit_complete) {
-						account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
-							//mail_service.sendDomainAuditCompleteEmail(account.getEmail(), domain.getUrl(), domain.getId());
-						});
-					}
-				}
-				else {
-					account_service.findById(audit_msg.getAccountId()).ifPresent(account -> {
-						//mail_service.sendPageAuditCompleteEmail(account.getEmail(), page.getUrl(), audit_record.getId());
-					});
-				}
-			}
-
-			// If domain audit exists send a domain level audit update
+				// If domain audit exists send a domain level audit update
 			if(domain_audit.isPresent()) {
 				 //Broadcast audit update message to messageBroadcaster
 				AuditUpdateDto audit_update = buildDomainAuditRecordDTO(domain_audit.get().getId());
@@ -217,8 +183,7 @@ public class AuditController {
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
-	    	//log.warn("An exception occurred while converting JSON to AuditProgressUpdate : "+e.getMessage());
-	    	//e.printStackTrace();
+	    	// not a PageAuditProgressMessage, try next type
 	    }
 
 	    try {
@@ -229,8 +194,7 @@ public class AuditController {
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
-	    	//log.warn("error converting json string to JourneyCandidateMessage : "+e.getMessage());
-	    	//e.printStackTrace();
+	    	// not a JourneyCandidateMessage, try next type
 	    }
 
 	    try {
@@ -241,7 +205,7 @@ public class AuditController {
 			return new ResponseEntity<String>("Successfully sent audit update to user", HttpStatus.OK);
 	    }
 	    catch(Exception e) {
-	    	//log.warn("error converting json string to VerifiedJourneyMessage : "+e.getMessage());
+	    	// not a VerifiedJourneyMessage, try next type
 	    }
 
 	    try {
@@ -255,7 +219,7 @@ public class AuditController {
 
 	    }
 	    catch(Exception e) {
-	    	//log.warn("error converting json string to DiscardedJourneyMessage : "+e.getMessage());
+	    	// not a DiscardedJourneyMessage
 	    }
 
 		return new ResponseEntity<String>("Error occurred while updating audit progress", HttpStatus.BAD_REQUEST);
