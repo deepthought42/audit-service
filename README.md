@@ -52,7 +52,7 @@ mvn spring-boot:run
 Or run the packaged jar:
 
 ```bash
-java -jar target/audit-update-service-1.0.32.jar
+java -jar target/audit-update-service-1.0.33.jar
 ```
 
 ## Service Endpoint
@@ -74,6 +74,39 @@ Expected request body shape:
 }
 ```
 
+### Supported Message Types
+
+The `data` field (after Base64 decoding) is attempted in order against each of the following types. The first successful deserialization is processed:
+
+| Message Type | Purpose |
+|---|---|
+| `AuditProgressUpdate` | General audit progress for a page audit |
+| `PageAuditProgressMessage` | Page-level audit completion events |
+| `JourneyCandidateMessage` | New journey candidate discovered |
+| `VerifiedJourneyMessage` | Journey verified |
+| `DiscardedJourneyMessage` | Journey discarded |
+
+### Response Codes
+
+| Code | Meaning |
+|---|---|
+| `200 OK` | Message processed and audit update broadcast successfully |
+| `400 Bad Request` | Invalid payload, undecodable Base64, or unrecognized message type |
+
+## Design by Contract
+
+This codebase follows **Design by Contract (DbC)** principles. Every method documents and enforces its contract:
+
+- **Preconditions** validate that callers provide correct inputs (e.g., non-null arguments, positive IDs). Violations in public endpoints return `400 Bad Request`; violations in internal methods use Java `assert` statements.
+- **Postconditions** verify return value guarantees (e.g., non-null DTOs, progress values in `[0.0, 1.0]`, non-null execution status). These are enforced via `assert` statements.
+- **Class invariants** are documented on the `AuditController` class (all `@Autowired` dependencies are non-null after Spring initialization).
+
+Assertions are enabled in production via the `-ea` JVM flag (see `Dockerfile`). To run with assertions enabled locally:
+
+```bash
+java -ea -jar target/audit-update-service-1.0.33.jar
+```
+
 ## Configuration
 
 See `src/main/resources/application.properties` for runtime configuration. Key areas:
@@ -81,36 +114,6 @@ See `src/main/resources/application.properties` for runtime configuration. Key a
 - Server and management ports
 - GCP Pub/Sub topic names
 - Pusher credentials (typically via env vars)
-- Neo4j settings (commented templates)
-
-## Code Review Findings (this repository)
-
-### Issues fixed
-
-1. **Potential null payload handling in controller**
-   - Added defensive validation for null/invalid message payloads and now returns `400 Bad Request`.
-
-2. **Unsafe `Optional#get()` usage**
-   - Replaced risky direct `get()` usage with safer `ifPresent(...)` / guarded Optional checks in message-processing paths.
-
-3. **Incorrect completion status condition**
-   - Fixed duplicated progress condition checks to correctly include information architecture progress.
-
-4. **Error status semantics**
-   - Changed unknown/unhandled message response from `200 OK` to `400 Bad Request` for clearer client behavior.
-
-5. **Logging and typo quality issues**
-   - Replaced `printStackTrace()` with structured logger warnings and fixed typo in warning text.
-
-6. **Broken test assertion typo**
-   - Corrected `assetTrue(...)` typo and simplified the placeholder test to compile cleanly.
-
-### Additional recommended follow-ups
-
-- Add focused unit tests for `AuditController.receiveMessage(...)` covering each message type and malformed payloads.
-- Consolidate message deserialization strategy to avoid repetitive try/catch branches.
-- Replace field injection (`@Autowired`) with constructor injection for clearer immutability and testability.
-- Resolve dependency retrieval/network policy issues that currently block Maven builds in restricted environments.
 
 ## Contributing
 

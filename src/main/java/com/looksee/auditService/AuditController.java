@@ -4,7 +4,6 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.mapper.Body;
@@ -50,7 +47,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 /**
- * Controller for the audit service
+ * REST controller that receives audit progress messages from a message broker
+ * (via GCP Pub/Sub push subscriptions) and broadcasts real-time audit updates
+ * to connected clients.
+ *
+ * <p><b>Class invariant:</b> all {@code @Autowired} service dependencies are
+ * non-null after Spring context initialization.</p>
  */
 @RestController
 public class AuditController {
@@ -72,16 +74,30 @@ public class AuditController {
 	private MessageBroadcaster messageBroadcaster;
 
 	/**
-	 * Receives a message from the message broker and processes it
+	 * Receives a Pub/Sub push message, deserializes it into one of the supported
+	 * message types, and broadcasts an audit progress update to connected clients.
 	 *
-	 * @param body the body of the message containing the audit progress update
+	 * <p><b>Preconditions:</b></p>
+	 * <ul>
+	 *   <li>{@code body} must be non-null with a non-null {@code message} containing
+	 *       non-null, valid Base64-encoded {@code data}.</li>
+	 * </ul>
 	 *
-	 * @return ResponseEntity<String> a response entity with a success message
+	 * <p><b>Postconditions:</b></p>
+	 * <ul>
+	 *   <li>Returns {@code 200 OK} when the message is successfully deserialized and
+	 *       the audit update is broadcast.</li>
+	 *   <li>Returns {@code 400 Bad Request} when preconditions are violated or the
+	 *       message cannot be deserialized into any supported type.</li>
+	 * </ul>
 	 *
-	 * @throws JsonMappingException if there is an error mapping the JSON to the object
-	 * @throws JsonProcessingException if there is an error processing the JSON
-	 * @throws ExecutionException if there is an error executing the message
-	 * @throws InterruptedException if the thread is interrupted
+	 * <p>Supported message types (tried in order):
+	 * {@link AuditProgressUpdate}, {@link PageAuditProgressMessage},
+	 * {@link JourneyCandidateMessage}, {@link VerifiedJourneyMessage},
+	 * {@link DiscardedJourneyMessage}.</p>
+	 *
+	 * @param body the Pub/Sub push message wrapper; must not be null
+	 * @return a response entity indicating success or failure
 	 */
 	@Operation(summary = "Receive audit progress message", description = "Receives a message from the message broker and processes audit progress updates")
 	@ApiResponses(value = {
@@ -90,7 +106,8 @@ public class AuditController {
 		@ApiResponse(responseCode = "500", description = "Internal server error")
 	})
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException {
+	public ResponseEntity<String> receiveMessage(@RequestBody Body body) {
+		// Precondition: body, message, and data must all be non-null
 		if (body == null || body.getMessage() == null || body.getMessage().getData() == null) {
 			log.warn("Invalid message payload received");
 			return new ResponseEntity<String>("Invalid message payload", HttpStatus.BAD_REQUEST);
@@ -226,14 +243,23 @@ public class AuditController {
 	}
 
 	/**
-	 * Creates an {@linkplain PageAuditDto} using page audit ID and the provided page_url
+	 * Builds an {@link AuditUpdateDto} representing the current progress and scores
+	 * for a page-level audit.
 	 *
-	 * @param pageAuditId
+	 * <p><b>Precondition:</b> {@code page_audit_id} must be a positive ID
+	 * corresponding to an existing page audit record.</p>
 	 *
-	 * @return
+	 * <p><b>Postcondition:</b> returns a non-null {@link AuditUpdateDto} with
+	 * {@link AuditLevel#PAGE} level, scores in the range [0, 100], progress
+	 * values in [0.0, 1.0], and a non-null execution status.</p>
+	 *
+	 * @param page_audit_id the positive database ID of the page audit record
+	 * @return a fully populated page-level audit update DTO; never null
+	 * @throws IllegalArgumentException if {@code page_audit_id} is not positive
 	 */
 	private AuditUpdateDto buildPageAuditUpdatedDto(long page_audit_id) {
-		//get all audits
+		assert page_audit_id > 0 : "Precondition failed: page_audit_id must be positive, got " + page_audit_id;
+
 		Set<Audit> audits = audit_record_service.getAllAudits(page_audit_id);
 		Set<AuditName> audit_labels = new HashSet<AuditName>();
 		audit_labels.add(AuditName.TEXT_BACKGROUND_CONTRAST);
@@ -247,10 +273,6 @@ public class AuditController {
 		audit_labels.add(AuditName.READING_COMPLEXITY);
 		audit_labels.add(AuditName.PARAGRAPHING);
 		audit_labels.add(AuditName.ENCRYPTED);
-		//count audits for each category
-		//calculate content score
-		//calculate aesthetics score
-		//calculate information architecture score
 		double visual_design_progress = AuditUtils.calculateProgress(AuditCategory.AESTHETICS,
 																1,
 																audits,
@@ -289,7 +311,7 @@ public class AuditController {
 			execution_status = ExecutionStatus.COMPLETE;
 		}
 
-		return new AuditUpdateDto( page_audit_id,
+		AuditUpdateDto result = new AuditUpdateDto( page_audit_id,
 									AuditLevel.PAGE,
 									content_score,
 									content_progress,
@@ -301,16 +323,31 @@ public class AuditController {
 									data_extraction_progress,
 									message,
 									execution_status);
+
+		assert result != null : "Postcondition failed: result must not be null";
+		assert result.getStatus() != null : "Postcondition failed: execution status must not be null";
+		return result;
 	}
 
 	/**
-	 * Build audit {@link AuditRecordDTO progress update} for a {@link DomainAuditRecord domain audit}
+	 * Builds an {@link AuditUpdateDto} representing the current progress and scores
+	 * for a domain-level audit by aggregating results across all child page audits.
 	 *
-	 * @param audit_msg
+	 * <p><b>Precondition:</b> {@code audit_record_id} must be a positive ID that
+	 * resolves to an existing {@link DomainAuditRecord}.</p>
 	 *
-	 * @return
+	 * <p><b>Postcondition:</b> returns a non-null {@link AuditUpdateDto} with
+	 * {@link AuditLevel#DOMAIN} level, scores in the range [0, 100], progress
+	 * values in [0.0, 1.0], and a non-null execution status.</p>
+	 *
+	 * @param audit_record_id the positive database ID of the domain audit record
+	 * @return a fully populated domain-level audit update DTO; never null
+	 * @throws IllegalArgumentException if {@code audit_record_id} is not positive or
+	 *         does not correspond to a {@link DomainAuditRecord}
 	 */
 	private AuditUpdateDto buildDomainAuditRecordDTO(long audit_record_id) {
+		assert audit_record_id > 0 : "Precondition failed: audit_record_id must be positive, got " + audit_record_id;
+
 		Optional<AuditRecord> auditRecordOpt = audit_record_service.findById(audit_record_id);
 		if (auditRecordOpt.isEmpty() || !(auditRecordOpt.get() instanceof DomainAuditRecord)) {
 			throw new IllegalArgumentException("Domain audit record not found for id=" + audit_record_id);
@@ -348,7 +385,7 @@ public class AuditController {
 
 		String message = "";
 
-		return new AuditUpdateDto( audit_record_id,
+		AuditUpdateDto result = new AuditUpdateDto( audit_record_id,
 									AuditLevel.DOMAIN,
 									content_score,
 									content_progress,
@@ -360,18 +397,28 @@ public class AuditController {
 									data_extraction_progress,
 									message,
 									execution_status);
+
+		assert result != null : "Postcondition failed: result must not be null";
+		assert result.getStatus() != null : "Postcondition failed: execution status must not be null";
+		return result;
 	}
 
 	/**
-	 * Retrieves journeys from the domain audit and calculates a value between 0 and 1 that indicates the progress
-	 * based on the number of journey's that are still in the CANDIDATE status vs the journeys that don't have the CANDIDATE STATUS
+	 * Calculates the data extraction progress for a domain audit based on the
+	 * ratio of non-candidate journeys to total journeys.
 	 *
-	 * @param domain_audit
+	 * <p><b>Precondition:</b> {@code domain_audit} must not be null.</p>
 	 *
-	 * @return
+	 * <p><b>Postcondition:</b> the returned value is in the range [0.0, 1.0].
+	 * Returns {@code 0.01} when there are 0 or 1 total journeys (indicating
+	 * that journey discovery has not yet begun).</p>
+	 *
+	 * @param domain_audit the domain audit record to calculate progress for; must not be null
+	 * @return a progress value between 0.0 and 1.0 (inclusive)
+	 * @throws AssertionError if {@code domain_audit} is null (when assertions are enabled)
 	 */
 	private double getDomainDataExtractionProgress(DomainAuditRecord domain_audit) {
-		assert domain_audit != null;
+		assert domain_audit != null : "Precondition failed: domain_audit must not be null";
 
 		int candidate_count = audit_record_service.getNumberOfJourneysWithStatus(domain_audit.getId(), JourneyStatus.CANDIDATE);
 		int total_journeys = audit_record_service.getNumberOfJourneys(domain_audit.getId());
@@ -380,22 +427,28 @@ public class AuditController {
 			return 0.01;
 		}
 
-		return (double)(total_journeys - candidate_count) / (double)total_journeys;
+		double progress = (double)(total_journeys - candidate_count) / (double)total_journeys;
 
+		assert progress >= 0.0 && progress <= 1.0
+			: "Postcondition failed: progress must be in [0.0, 1.0], got " + progress;
+		return progress;
 	}
 
 	/**
-	 * Retrieves journeys from the domain audit and calculates a value between 0 and 1 that indicates the progress
-	 * based on the number of journey's that are still in the CANDIDATE status vs the journeys that don't have the CANDIDATE STATUS
+	 * Calculates the data extraction progress for a page audit based on the
+	 * availability of audits, the associated page, and its element count.
 	 *
-	 * NOTE : Progress is based on a magic number(10000). Be aware that all progress will be based on an assumed maximum element
-	 *        count of 1000
+	 * <p><b>Precondition:</b> {@code audit_record_id} must be a positive ID
+	 * corresponding to an existing audit record.</p>
 	 *
-	 * @param audit_record_id
+	 * <p><b>Postcondition:</b> the returned value is in the range [0.0, 1.0].</p>
 	 *
-	 * @return progress percentage as a value between 0 and 1
+	 * @param audit_record_id the positive database ID of the audit record
+	 * @return a progress value between 0.0 and 1.0 (inclusive)
+	 * @throws IllegalArgumentException if {@code audit_record_id} is not positive
 	 */
 	private double getPageDataExtractionProgress(long audit_record_id) {
+		assert audit_record_id > 0 : "Precondition failed: audit_record_id must be positive, got " + audit_record_id;
 		double milestone_count = 0;
 
 		PageState page = audit_record_service.findPage(audit_record_id);
@@ -425,6 +478,10 @@ public class AuditController {
 			milestone_count += max_elements / (double)element_count;
 		}
 
-		return milestone_count / 2.0;
+		double progress = milestone_count / 2.0;
+
+		assert progress >= 0.0 && progress <= 1.0
+			: "Postcondition failed: progress must be in [0.0, 1.0], got " + progress;
+		return progress;
 	}
 }
