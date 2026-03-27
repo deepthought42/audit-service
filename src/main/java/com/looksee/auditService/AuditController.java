@@ -469,13 +469,12 @@ public class AuditController {
 
 		int element_count = page_state_service.getElementStateCount(page.getId());
 
-		//if the associated page has elements add 1000/element_count
 		int max_elements = 1000;
 		if(element_count > 0) {
 			if(element_count > max_elements) {
 				max_elements = element_count;
 			}
-			milestone_count += max_elements / (double)element_count;
+			milestone_count += element_count / (double)max_elements;
 		}
 
 		double progress = milestone_count / 2.0;
